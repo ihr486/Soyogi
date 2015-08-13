@@ -35,5 +35,10 @@ extern const float floor1_inverse_dB_table[256];
 
 void setup_codebooks(void);
 void setup_floors(void);
+void setup_residues(void);
+void setup_mappings(void);
+void setup_modes(void);
+
+extern uint8_t audio_channels;
 
 #endif

@@ -1,6 +1,6 @@
 #include "decoder.h"
 
-static uint8_t audio_channels = 0;
+uint8_t audio_channels = 0;
 static uint32_t audio_sample_rate = 0;
 static uint32_t bitrate_maximum = 0;
 static uint32_t bitrate_nominal = 0;
@@ -95,47 +95,13 @@ static int decode_setup_header(void)
 
     setup_floors();
 
-    /*int residue_count = read_unsigned_value(6) + 1;
+    setup_residues();
 
-    for(int i = 0; i < residue_count; i++) {
-        uint16_t residue_type = read_unsigned_value(16);
+    setup_mappings();
 
-        switch(residue_type) {
-        case 0:
-            setup_residue0();
-            break;
-        case 1:
-            setup_residue1();
-            break;
-        case 2:
-            setup_residue2();
-            break;
-        default:
-            fprintf(stderr, "Unknown residue type: %d.\n", residue_type);
-            return 1;
-        }
-    }
+    setup_modes();
 
-    int mapping_count = read_unsigned_value(6) + 1;
-
-    for(int i = 0; i < mapping_count; i++) {
-        uint16_t mapping_type = read_unsigned_value(16);
-
-        switch(mapping_type) {
-        case 0:
-            add_mapping();
-            break;
-        default:
-            fprintf(stderr, "Unknown mapping type: %d.\n", mapping_type);
-            return 1;
-        }
-    }
-
-    int mode_count = read_unsigned_value(6) + 1;
-
-    for(int i = 0; i < mode_count; i++) {
-        add_mode();
-    }*/
+    printf("%d bytes of setup stack consumed.\n", setup_get_head());
 
     return 0;
 }

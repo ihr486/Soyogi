@@ -59,8 +59,8 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
     level_depth[length - 1] = codeword + 1;
     codeword <<= 32 - length;
 
-    printf("\tCodeword[%d]:%d = %#X\n", index, length, codeword);
-    printf("\t");
+    //printf("\tCodeword[%d]:%d = %#X\n", index, length, codeword);
+    //printf("\t");
 
     uint16_t pos = cb->huffman;
 
@@ -71,7 +71,7 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
             setup_set_byte(pos + 1, 0);
         }
         pos += (codeword >> 31) & 1;
-        printf("%d->", pos);
+        //printf("%d->", pos);
         for(int i = 1; i < length; i++) {
             if(!setup_get_byte(pos)) {
                 uint16_t new_pos = setup_allocate_packed(2);
@@ -83,10 +83,10 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
                 pos = cb->huffman + setup_get_byte(pos) * 2;
             }
             pos += (codeword >> (31 - i)) & 1;
-            printf("%d->", pos);
+            //printf("%d->", pos);
         }
         setup_set_byte(pos, 0x80 | index);
-        printf("\n");
+        //printf("\n");
     } else if(cb->entries < 2048) {
         if(cb->huffman == setup_get_head()) {
             pos = setup_allocate_packed(3);
@@ -94,7 +94,7 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
             setup_set_byte(pos + 1, 0);
             setup_set_byte(pos + 2, 0);
         }
-        printf("%d->", pos);
+        //printf("%d->", pos);
         for(int i = 0; i < length - 1; i++) {
             if((codeword >> (31 - i)) & 1) {
                 uint16_t next = ((uint16_t)setup_get_byte(pos + 2) << 4) | (setup_get_byte(pos + 1) >> 4);
@@ -123,7 +123,7 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
                     pos = cb->huffman + next * 3;
                 }
             }
-            printf("%d->", pos);
+            //printf("%d->", pos);
         }
         if((codeword >> (32 - length)) & 1) {
             setup_set_byte(pos + 1, setup_get_byte(pos + 1) | ((uint8_t)index << 4));
@@ -132,7 +132,7 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
             setup_set_byte(pos, index);
             setup_set_byte(pos + 1, setup_get_byte(pos + 1) | 0x08 | (index >> 8));
         }
-        printf("\n");
+        //printf("\n");
     } else if(cb->entries < 32768) {
         if(cb->huffman == setup_get_head()) {
             pos = setup_allocate_packed(4);
