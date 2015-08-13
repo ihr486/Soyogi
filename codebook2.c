@@ -193,7 +193,7 @@ static void decode_codebook(int index)
         while(current_entry < cb->entries) {
             uint32_t number = read_unsigned_value(ilog(cb->entries - current_entry));
 
-            for(int i = 0; i < number; i++) {
+            for(unsigned int i = 0; i < number; i++) {
                 insert_codeword(cb, i, current_length, level_depth);
             }
 

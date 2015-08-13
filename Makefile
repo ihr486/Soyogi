@@ -1,4 +1,5 @@
 CSRCS := $(wildcard *.c)
+HDRS := $(wildcard *.h)
 
 COBJS := $(CSRCS:%.c=%.o)
 
@@ -23,5 +24,5 @@ clean:
 $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-%.o: %.c
+%.o: %.c $(HDRS)
 	$(CC) $(CFLAGS) -c -o $@ $<

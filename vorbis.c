@@ -43,7 +43,7 @@ static int decode_comment(char *buf)
 {
     uint32_t length = read_unsigned_value(32);
 
-    int i;
+    unsigned int i;
     for(i = 0; i < length; i++) {
         char c = read_unsigned_value(8);
 
@@ -68,7 +68,7 @@ static int decode_comment_header(void)
 
     uint32_t num_comments = read_unsigned_value(32);
 
-    for(int i = 0; i < num_comments; i++) {
+    for(unsigned int i = 0; i < num_comments; i++) {
         decode_comment(comment);
 
         printf("%s\n", comment);
