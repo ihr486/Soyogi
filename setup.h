@@ -1,7 +1,7 @@
 #ifndef SETUP_H
-#define SETUP_h
+#define SETUP_H
 
-#define SETUP_STACK_SIZE 20480
+#define SETUP_STACK_SIZE 16384
 
 extern uint8_t setup_stack[SETUP_STACK_SIZE];
 extern uint16_t setup_stack_head;

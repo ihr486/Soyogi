@@ -1,10 +1,5 @@
 #include "decoder.h"
 
-typedef struct mode_tag {
-    uint8_t blockflag;
-    uint8_t mapping;
-} mode_t;
-
 int mode_num = 0;
 mode_t *mode_list = NULL;
 

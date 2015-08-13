@@ -37,7 +37,7 @@ static int decode_identification_header(void)
     return 0;
 }
 
-#define MAX_COMMENT_LENGTH 128
+#define MAX_COMMENT_LENGTH 16384
 
 static int decode_comment(char *buf)
 {
@@ -106,6 +106,27 @@ static int decode_setup_header(void)
     return 0;
 }
 
+void decode_audio_packet(void)
+{
+    INFO("Decoding audio packet...\n");
+
+    int mode_number = read_unsigned_value(ilog(mode_num - 1));
+
+    INFO("\tMode %d.\n", mode_number);
+
+    int blockflag = mode_list[mode_number].blockflag;
+
+    int n = blocksize[blockflag];
+
+    int previous_window_flag, next_window_flag;
+
+    if(blockflag) {
+        previous_window_flag = read_unsigned_value(1);
+        next_window_flag = read_unsigned_value(1);
+    }
+
+}
+
 int decode_packet(void)
 {
     if(read_unsigned_value(1)) {
@@ -133,6 +154,7 @@ int decode_packet(void)
             return 1;
         }
     } else {
+        decode_audio_packet();
     }
 
     return 0;

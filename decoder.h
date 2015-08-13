@@ -13,6 +13,7 @@
 #include "misc.h"
 #include "vorbis_helper.h"
 #include "setup.h"
+#include "mode.h"
 
 #define SECTOR_SIZE (512)
 
@@ -37,7 +38,6 @@ void setup_codebooks(void);
 void setup_floors(void);
 void setup_residues(void);
 void setup_mappings(void);
-void setup_modes(void);
 
 extern uint8_t audio_channels;
 
