@@ -21,6 +21,23 @@ inline void setup_set_byte(uint16_t p, uint8_t val)
     setup_stack[p] = val;
 }
 
+inline uint16_t setup_get_short(uint16_t p)
+{
+    return setup_stack[p] | (setup_stack[p + 1] << 8);
+}
+
+inline void setup_set_short(uint16_t p, uint16_t val)
+{
+    setup_stack[p] = val;
+    setup_stack[p + 1] = val >> 8;
+}
+
+inline void setup_push_short(uint16_t val)
+{
+    setup_stack[setup_stack_head] = val;
+    setup_stack[setup_stack_head + 1] = val >> 8;
+}
+
 inline uint16_t setup_allocate_natural(uint16_t size)
 {
     uint16_t ret = ((setup_stack_head + 3) / 4) * 4;
