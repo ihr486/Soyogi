@@ -114,17 +114,33 @@ void decode_audio_packet(void)
 
     INFO("\tMode %d.\n", mode_number);
 
-    int blockflag = mode_list[mode_number].blockflag;
+    mode_t *mode = &mode_list[mode_number];
 
-    int n = blocksize[blockflag];
+    int n = blocksize[mode->blockflag];
 
     int previous_window_flag, next_window_flag;
 
-    if(blockflag) {
+    if(mode->blockflag) {
         previous_window_flag = read_unsigned_value(1);
         next_window_flag = read_unsigned_value(1);
     }
 
+    mapping_header_t *mapping = &mapping_list[mode->mapping];
+
+    for(int i = 0; i < audio_channels; i++) {
+        int submap_number = 0;
+        if(mapping->submaps > 1) {
+            channel_t *channel_list = setup_ref(mapping->channel_list);
+
+            submap_number = channel_list[i].mux;
+        }
+
+        submap_t *submap_list = setup_ref(mapping->submap_list);
+
+        int floor_number = submap_list[submap_number].floor;
+
+        //stack_floor(floor_number);
+    }
 }
 
 int decode_packet(void)

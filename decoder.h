@@ -14,6 +14,8 @@
 #include "vorbis_helper.h"
 #include "setup.h"
 #include "mode.h"
+#include "mapping.h"
+#include "floor1.h"
 
 #define SECTOR_SIZE (512)
 
@@ -35,9 +37,7 @@ int decode_packet(void);
 extern const float floor1_inverse_dB_table[256];
 
 void setup_codebooks(void);
-void setup_floors(void);
 void setup_residues(void);
-void setup_mappings(void);
 
 extern uint8_t audio_channels;
 

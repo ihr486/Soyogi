@@ -1,31 +1,5 @@
 #include "decoder.h"
 
-typedef struct floor1_partition_tag {
-    uint8_t class;
-} floor1_partition_t;
-
-typedef struct floor1_header_tag {
-    uint8_t partitions;
-    uint8_t classes;
-    uint16_t partition_list;
-    uint16_t class_list;
-    uint8_t multiplier;
-    uint8_t rangebits;
-    uint16_t X_list;
-    uint16_t values;
-} floor1_header_t;
-
-typedef struct floor1_subclass_tag {
-    uint8_t books;
-} floor1_subclass_t;
-
-typedef struct floor1_class_tag {
-    uint8_t dimension;
-    uint8_t subclasses;
-    uint8_t masterbooks;
-    uint16_t subclass_list;
-} floor1_class_t;
-
 int floor_num = 0;
 floor1_header_t *floor_list = NULL;
 
