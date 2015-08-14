@@ -8,6 +8,11 @@ static uint32_t bitrate_minimum = 0;
 static uint16_t blocksize[2] = {0, 0};
 static uint8_t framing_flag = 0;
 
+typedef struct vector_tag {
+    uint8_t no_residue;
+    uint8_t do_not_decode;
+} vector_t;
+
 static int decode_identification_header(void)
 {
     uint32_t vorbis_version = read_unsigned_value(32);
@@ -139,6 +144,23 @@ void decode_audio_packet(void)
         int floor_number = submap_list[submap_number].floor;
 
         decode_floor1(floor_number, i);
+    }
+
+    coupling_step_t *step_list = setup_ref(mapping->coupling_step_list);
+    for(int i = 0; i < mapping->coupling_steps; i++) {
+        if(floor_vector_list[step_list[i].magnitude].nonzero || !floor_vector_list[step_list[i].angle].nonzero) {
+        }
+    }
+
+    for(int i = 0; i < mapping->submaps; i++) {
+        int ch = 0;
+
+        for(int j = 0; j < audio_channels; j++) {
+            if(mapping->submaps == 1) {
+            } else {
+                ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
+            }
+        }
     }
 
     setup_set_head(setup_origin);

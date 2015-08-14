@@ -16,6 +16,7 @@
 #include "mode.h"
 #include "mapping.h"
 #include "floor1.h"
+#include "residue.h"
 
 #define SECTOR_SIZE (512)
 

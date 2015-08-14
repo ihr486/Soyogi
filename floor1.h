@@ -27,10 +27,16 @@ typedef struct floor1_class_tag {
     uint16_t subclass_list;
 } floor1_class_t;
 
+typedef struct floor1_coord_tag {
+    uint16_t X;
+    uint8_t Y;
+    uint8_t step2_flag;
+} floor1_coord_t;
+
 typedef struct floor1_vector_tag {
     uint8_t floor;
-    uint16_t Y_list;
-    uint16_t step2_flag_list;
+    uint8_t nonzero;
+    uint16_t coord_list;
 } floor1_vector_t;
 
 extern int floor_num;
