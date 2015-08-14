@@ -144,11 +144,15 @@ void decode_audio_packet(void)
         int floor_number = submap_list[submap_number].floor;
 
         decode_floor1(floor_number, i);
+
+        residue_vector_list[i].do_not_decode_flag = !floor_vector_list[i].nonzero;
     }
 
     coupling_step_t *step_list = setup_ref(mapping->coupling_step_list);
     for(int i = 0; i < mapping->coupling_steps; i++) {
         if(floor_vector_list[step_list[i].magnitude].nonzero || !floor_vector_list[step_list[i].angle].nonzero) {
+            residue_vector_list[step_list[i].magnitude].do_not_decode_flag = 0;
+            residue_vector_list[step_list[i].angle].do_not_decode_flag = 0;
         }
     }
 
