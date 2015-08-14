@@ -59,8 +59,7 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
     level_depth[length - 1] = codeword + 1;
     codeword <<= 32 - length;
 
-    //printf("\tCodeword[%d]:%d = %#X\n", index, length, codeword);
-    //printf("\t");
+    printf("\tCodeword[%d]:%d = %#X\n", index, length, codeword);
 
     uint16_t pos = cb->huffman;
 
@@ -71,7 +70,6 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
             setup_set_byte(pos + 1, 0);
         }
         pos += (codeword >> 31) & 1;
-        //printf("%d->", pos);
         for(int i = 1; i < length; i++) {
             if(!setup_get_byte(pos)) {
                 uint16_t new_pos = setup_allocate_packed(2);
@@ -83,10 +81,8 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
                 pos = cb->huffman + setup_get_byte(pos) * 2;
             }
             pos += (codeword >> (31 - i)) & 1;
-            //printf("%d->", pos);
         }
         setup_set_byte(pos, 0x80 | index);
-        //printf("\n");
     } else if(cb->entries < 2048) {
         if(cb->huffman == setup_get_head()) {
             pos = setup_allocate_packed(3);
@@ -94,7 +90,6 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
             setup_set_byte(pos + 1, 0);
             setup_set_byte(pos + 2, 0);
         }
-        //printf("%d->", pos);
         for(int i = 0; i < length - 1; i++) {
             if((codeword >> (31 - i)) & 1) {
                 uint16_t next = ((uint16_t)setup_get_byte(pos + 2) << 4) | (setup_get_byte(pos + 1) >> 4);
@@ -123,7 +118,6 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
                     pos = cb->huffman + next * 3;
                 }
             }
-            //printf("%d->", pos);
         }
         if((codeword >> (32 - length)) & 1) {
             setup_set_byte(pos + 1, setup_get_byte(pos + 1) | ((uint8_t)index << 4));
@@ -132,7 +126,6 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
             setup_set_byte(pos, index);
             setup_set_byte(pos + 1, setup_get_byte(pos + 1) | 0x08 | (index >> 8));
         }
-        //printf("\n");
     } else if(cb->entries < 32768) {
         if(cb->huffman == setup_get_head()) {
             pos = setup_allocate_packed(4);
@@ -143,7 +136,7 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
         }
         pos += 2 * ((codeword >> 31) & 1);
         for(int i = 1; i < length; i++) {
-            uint16_t next = setup_get_byte(pos) | (setup_get_byte(pos + 1) << 8);
+            uint16_t next = setup_get_byte(pos) | ((uint16_t)setup_get_byte(pos + 1) << 8);
             if(!next) {
                 uint16_t new_pos = setup_allocate_packed(4);
                 setup_set_byte(pos, (new_pos - cb->huffman) / 4);
@@ -225,7 +218,7 @@ static void decode_codebook(int index)
     cb->lookup_type = read_unsigned_value(4);
 
     if(cb->lookup_type > 0) {
-        printf("\tVQ lookup type %d.\n", cb->lookup_type);
+        INFO("\tVQ lookup type %d.\n", cb->lookup_type);
 
         cb->lookup = setup_allocate_natural(sizeof(VQ_header_t));
 
@@ -266,5 +259,43 @@ static void decode_codebook(int index)
                 table[i] = read_unsigned_value(value_bits);
             }
         }
+    }
+}
+
+uint16_t lookup_scalar(int index)
+{
+    codebook_t *cb = &codebook_list[index];
+
+    uint16_t pos = 0;
+
+    if(cb->entries < 128) {
+        //printf("L1[%d]", index);
+        while(!(pos & 0x80)) {
+            pos += read_unsigned_value(1);
+
+            pos = setup_get_byte(cb->huffman + pos);
+        }
+        //printf("=%d ", pos & 0x7F);
+        return pos & 0x7F;
+    } else if(cb->entries < 2048) {
+        //printf("L2[%d]", index);
+        while(!(pos & 0x800)) {
+            if(read_unsigned_value(1)) {
+                pos = ((uint16_t)setup_get_byte(cb->huffman + pos * 3 + 2) << 4) | (setup_get_byte(cb->huffman + pos * 3 + 1) >> 4);
+            } else {
+                pos = ((uint16_t)(setup_get_byte(cb->huffman + pos * 3 + 1) & 0x0F) << 8) | setup_get_byte(cb->huffman + pos * 3);
+            }
+        }
+        //printf("=%d ", pos & 0x7FF);
+        return pos & 0x7FF;
+    } else {
+        //printf("L3[%d]", index);
+        while(!(pos & 0x8000)) {
+            pos += read_unsigned_value(1) * 2;
+
+            pos = ((uint16_t)setup_get_byte(cb->huffman + pos * 4 + 1) << 8) | setup_get_byte(cb->huffman + pos * 4);
+        }
+        //printf("=%d ", pos & 0x7FFF);
+        return pos & 0x7FFF;
     }
 }

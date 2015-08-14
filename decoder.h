@@ -37,6 +37,7 @@ int decode_packet(void);
 extern const float floor1_inverse_dB_table[256];
 
 void setup_codebooks(void);
+uint16_t lookup_scalar(int index);
 void setup_residues(void);
 
 extern uint8_t audio_channels;

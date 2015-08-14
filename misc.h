@@ -27,5 +27,6 @@ extern jmp_buf jump_env;
 #define ERROR_RESIDUE 6
 #define ERROR_MAPPING 7
 #define ERROR_MODE 8
+#define ERROR_OGG 9
 
 #endif

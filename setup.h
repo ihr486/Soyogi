@@ -11,6 +11,11 @@ inline uint16_t setup_get_head(void)
     return setup_stack_head;
 }
 
+inline void setup_set_head(uint16_t p)
+{
+    setup_stack_head = p;
+}
+
 inline uint8_t setup_get_byte(uint16_t p)
 {
     return setup_stack[p];
@@ -36,6 +41,12 @@ inline void setup_push_short(uint16_t val)
 {
     setup_stack[setup_stack_head] = val;
     setup_stack[setup_stack_head + 1] = val >> 8;
+    setup_stack_head += 2;
+}
+
+inline void setup_push_byte(uint8_t val)
+{
+    setup_stack[setup_stack_head++] = val;
 }
 
 inline uint16_t setup_allocate_natural(uint16_t size)

@@ -126,21 +126,22 @@ void decode_audio_packet(void)
     }
 
     mapping_header_t *mapping = &mapping_list[mode->mapping];
+    channel_t *channel_list = setup_ref(mapping->channel_list);
+    submap_t *submap_list = setup_ref(mapping->submap_list);
+
+    uint16_t setup_origin = setup_get_head();
 
     for(int i = 0; i < audio_channels; i++) {
         int submap_number = 0;
-        if(mapping->submaps > 1) {
-            channel_t *channel_list = setup_ref(mapping->channel_list);
-
+        if(mapping->submaps > 1)
             submap_number = channel_list[i].mux;
-        }
-
-        submap_t *submap_list = setup_ref(mapping->submap_list);
 
         int floor_number = submap_list[submap_number].floor;
 
-        //stack_floor(floor_number);
+        decode_floor1(floor_number, i);
     }
+
+    setup_set_head(setup_origin);
 }
 
 int decode_packet(void)

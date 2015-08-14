@@ -58,6 +58,7 @@ static uint8_t fetch_byte_from_packet(void)
 {
     if(byte_position >= segment_size[segment_position]) {
         if(segment_size[segment_position] < 255) {
+            ERROR(ERROR_OGG, "end-of-packet condition met.\n");
             return 0;
         } else {
             if(++segment_position >= page_segments) {

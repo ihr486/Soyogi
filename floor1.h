@@ -17,7 +17,7 @@ typedef struct floor1_header_tag {
 } floor1_header_t;
 
 typedef struct floor1_subclass_tag {
-    uint8_t books;
+    int8_t books;
 } floor1_subclass_t;
 
 typedef struct floor1_class_tag {
@@ -27,9 +27,16 @@ typedef struct floor1_class_tag {
     uint16_t subclass_list;
 } floor1_class_t;
 
+typedef struct floor1_vector_tag {
+    uint8_t floor;
+    uint16_t Y_list;
+} floor1_vector_t;
+
 extern int floor_num;
 extern floor1_header_t *floor_list;
+extern floor1_vector_t *floor_vector_list;
 
 void setup_floors(void);
+void decode_floor1(int index, int channel);
 
 #endif

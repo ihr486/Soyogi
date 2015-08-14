@@ -8,6 +8,8 @@ void __attribute__((noreturn)) error_verbose(int code, const char *fmt, ...)
 
     va_start(ap, fmt);
 
+    fflush(stdout);
+
     vfprintf(stderr, fmt, ap);
 
     va_end(ap);

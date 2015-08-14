@@ -2,6 +2,7 @@
 
 int floor_num = 0;
 floor1_header_t *floor_list = NULL;
+floor1_vector_t *floor_vector_list = NULL;
 
 static void setup_floor1(int index);
 
@@ -25,6 +26,8 @@ void setup_floors(void)
     }
 
     INFO("%d floor configurations decoded.\n", floor_num);
+
+    floor_vector_list = setup_ref(setup_allocate_natural(sizeof(floor1_vector_t) * audio_channels));
 }
 
 static void setup_floor1(int index)
@@ -73,7 +76,7 @@ static void setup_floor1(int index)
     f->X_list = setup_allocate_natural(sizeof(uint16_t) * 2);
 
     setup_set_short(f->X_list, 0);
-    setup_set_short(f->X_list, 1 << f->rangebits);
+    setup_set_short(f->X_list + 2, 1 << f->rangebits);
 
     f->values = 2;
     for(int i = 0; i < f->partitions; i++) {
@@ -89,6 +92,56 @@ static void setup_floor1(int index)
     printf("\n");
 }
 
-/*void decode_floor1(void)
+void decode_floor1(int index, int channel)
 {
-}*/
+    static const int range_list[4] = {256, 128, 86, 64};
+
+    floor1_header_t *floor = &floor_list[index];
+
+    int nonzero = read_unsigned_value(1);
+
+    if(nonzero) {
+        INFO("multiplier = %d.\n", floor->multiplier);
+        int range = range_list[floor->multiplier - 1];
+
+        floor1_vector_t *vector = &floor_vector_list[channel];
+
+        vector->Y_list = setup_allocate_natural(sizeof(uint8_t) * 2);
+
+        setup_set_byte(vector->Y_list, read_unsigned_value(ilog(range - 1)));
+        setup_set_byte(vector->Y_list + 1, read_unsigned_value(ilog(range - 1)));
+
+        floor1_partition_t *partition_list = setup_ref(floor->partition_list);
+        floor1_class_t *class_list = setup_ref(floor->class_list);
+
+        for(unsigned int i = 0; i < floor->partitions; i++) {
+            int class = partition_list[i].class;
+            int cdim = class_list[class].dimension;
+            int cbits = class_list[class].subclasses;
+            int csub = (1 << cbits) - 1;
+            int cval = 0;
+
+            if(cbits > 0) {
+                cval = lookup_scalar(class_list[class].masterbooks);
+            }
+
+            floor1_subclass_t *subclass_list = setup_ref(class_list[class].subclass_list);
+
+            for(int j = 0; j < cdim; j++) {
+                int book = subclass_list[cval & csub].books;
+                cval >>= cbits;
+
+                if(book >= 0) {
+                    setup_push_byte(lookup_scalar(book));
+                } else {
+                    setup_push_byte(0);
+                }
+            }
+        }
+        printf("\t");
+        for(unsigned int i = 0; i < floor->values; i++) {
+            printf("(%d, %d) ", setup_get_short(floor->X_list + 2 * i), setup_get_byte(vector->Y_list + i));
+        }
+        printf("\n");
+    }
+}
