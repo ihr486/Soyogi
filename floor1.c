@@ -101,15 +101,23 @@ void decode_floor1(int index, int channel)
     int nonzero = read_unsigned_value(1);
 
     if(nonzero) {
-        INFO("multiplier = %d.\n", floor->multiplier);
         int range = range_list[floor->multiplier - 1];
 
         floor1_vector_t *vector = &floor_vector_list[channel];
 
-        vector->Y_list = setup_allocate_natural(sizeof(uint8_t) * 2);
+        vector->Y_list = setup_allocate_natural(sizeof(uint8_t) * floor->values);
+        vector->step2_flag_list = setup_allocate_natural(sizeof(uint8_t) * floor->values);
 
         setup_set_byte(vector->Y_list, read_unsigned_value(ilog(range - 1)));
         setup_set_byte(vector->Y_list + 1, read_unsigned_value(ilog(range - 1)));
+
+        uint16_t src_Y_list = setup_allocate_natural(sizeof(uint8_t) * 2);
+
+        setup_set_byte(src_Y_list, setup_get_byte(vector->Y_list));
+        setup_set_byte(src_Y_list + 1, setup_get_byte(vector->Y_list + 1));
+
+        uint8_t *final_Y = setup_ref(vector->Y_list);
+        uint8_t *Y = setup_ref(src_Y_list);
 
         floor1_partition_t *partition_list = setup_ref(floor->partition_list);
         floor1_class_t *class_list = setup_ref(floor->class_list);
@@ -138,10 +146,57 @@ void decode_floor1(int index, int channel)
                 }
             }
         }
+
+        setup_set_byte(vector->step2_flag_list, 1);
+        setup_set_byte(vector->step2_flag_list + 1, 1);
+
+        uint8_t *step2_flag = setup_ref(vector->step2_flag_list);
+        uint16_t *X = setup_ref(floor->X_list);
+
+        for(int i = 2; i < floor->values; i++) {
+            int low_neighbor_offset = low_neighbor(X, i);
+            int high_neighbor_offset = high_neighbor(X, i);
+
+            int predicted = render_point(X[low_neighbor_offset], Y[low_neighbor_offset], X[high_neighbor_offset], Y[high_neighbor_offset], X[i]);
+
+            int val = Y[i];
+            int highroom = range - predicted;
+            int lowroom = predicted;
+            int room;
+            if(highroom < lowroom) {
+                room = highroom * 2;
+            } else {
+                room = lowroom * 2;
+            }
+            if(val) {
+                step2_flag[low_neighbor_offset] = 1;
+                step2_flag[high_neighbor_offset] = 1;
+                step2_flag[i] = 1;
+                if(val >= room) {
+                    if(highroom > lowroom) {
+                        final_Y[i] = val - lowroom + predicted;
+                    } else {
+                        final_Y[i] = predicted - val + highroom - 1;
+                    }
+                } else {
+                    if(val & 1) {
+                        final_Y[i] = predicted - (val + 1) / 2;
+                    } else {
+                        final_Y[i] = predicted + val / 2;
+                    }
+                }
+            } else {
+                step2_flag[i] = 0;
+                final_Y[i] = predicted;
+            }
+        }
+
         printf("\t");
         for(unsigned int i = 0; i < floor->values; i++) {
             printf("(%d, %d) ", setup_get_short(floor->X_list + 2 * i), setup_get_byte(vector->Y_list + i));
         }
         printf("\n");
+
+        setup_set_head(src_Y_list);
     }
 }

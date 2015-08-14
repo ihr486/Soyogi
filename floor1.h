@@ -30,6 +30,7 @@ typedef struct floor1_class_tag {
 typedef struct floor1_vector_tag {
     uint8_t floor;
     uint16_t Y_list;
+    uint16_t step2_flag_list;
 } floor1_vector_t;
 
 extern int floor_num;

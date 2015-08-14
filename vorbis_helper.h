@@ -40,3 +40,14 @@ inline int high_neighbor(uint16_t *v, int x)
     }
     return ret;
 }
+
+inline int render_point(int x0, int y0, int x1, int y1, int X)
+{
+    int off = abs(y1 - y0) * (X - x0) / (x1 - x0);
+
+    if(y1 < y0) {
+        return y0 - off;
+    } else {
+        return y0 + off;
+    }
+}
