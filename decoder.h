@@ -17,6 +17,7 @@
 #include "mapping.h"
 #include "floor1.h"
 #include "residue.h"
+#include "vector.h"
 
 #define SECTOR_SIZE (512)
 
@@ -42,5 +43,8 @@ uint16_t lookup_scalar(int index);
 void lookup_vector(float *v, int index, int step);
 
 extern uint8_t audio_channels;
+extern uint16_t blocksize[2];
+extern uint32_t audio_sample_rate;
+extern uint32_t bitrate_nominal;
 
 #endif

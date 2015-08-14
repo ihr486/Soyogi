@@ -2,7 +2,6 @@
 
 int floor_num = 0;
 floor1_header_t *floor_list = NULL;
-floor1_vector_t *floor_vector_list = NULL;
 
 static void setup_floor1(int index);
 
@@ -26,8 +25,6 @@ void setup_floors(void)
     }
 
     INFO("%d floor configurations decoded.\n", floor_num);
-
-    floor_vector_list = setup_ref(setup_allocate_natural(sizeof(floor1_vector_t) * audio_channels));
 }
 
 static void setup_floor1(int index)
@@ -102,7 +99,7 @@ void decode_floor1(int index, int channel)
     static const int range_list[4] = {256, 128, 86, 64};
 
     floor1_header_t *floor = &floor_list[index];
-    floor1_vector_t *vector = &floor_vector_list[channel];
+    vector_t *vector = &vector_list[channel];
 
     vector->nonzero = read_unsigned_value(1);
 

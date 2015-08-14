@@ -33,15 +33,8 @@ typedef struct floor1_coord_tag {
     uint8_t step2_flag;
 } floor1_coord_t;
 
-typedef struct floor1_vector_tag {
-    uint8_t floor;
-    uint8_t nonzero;
-    uint16_t coord_list;
-} floor1_vector_t;
-
 extern int floor_num;
 extern floor1_header_t *floor_list;
-extern floor1_vector_t *floor_vector_list;
 
 void setup_floors(void);
 void decode_floor1(int index, int channel);

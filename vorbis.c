@@ -1,17 +1,9 @@
 #include "decoder.h"
 
 uint8_t audio_channels = 0;
-static uint32_t audio_sample_rate = 0;
-static uint32_t bitrate_maximum = 0;
-static uint32_t bitrate_nominal = 0;
-static uint32_t bitrate_minimum = 0;
-static uint16_t blocksize[2] = {0, 0};
-static uint8_t framing_flag = 0;
-
-typedef struct vector_tag {
-    uint8_t no_residue;
-    uint8_t do_not_decode;
-} vector_t;
+uint32_t audio_sample_rate = 0;
+uint32_t bitrate_nominal = 0;
+uint16_t blocksize[2] = {0, 0};
 
 static int decode_identification_header(void)
 {
@@ -24,9 +16,9 @@ static int decode_identification_header(void)
 
     audio_channels = read_unsigned_value(8);
     audio_sample_rate = read_unsigned_value(32);
-    bitrate_maximum = read_unsigned_value(32);
+    read_unsigned_value(32);
     bitrate_nominal = read_unsigned_value(32);
-    bitrate_minimum = read_unsigned_value(32);
+    read_unsigned_value(32);
     blocksize[0] = 1 << read_unsigned_value(4);
     blocksize[1] = 1 << read_unsigned_value(4);
 
@@ -35,7 +27,8 @@ static int decode_identification_header(void)
         return 1;
     }
 
-    framing_flag = read_unsigned_value(1);
+    if(!read_unsigned_value(1))
+        ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
 
     printf("%d ch, %d SPS, %d bps, %d/%d SPB\n", audio_channels, audio_sample_rate, bitrate_nominal, blocksize[0], blocksize[1]);
 
@@ -106,6 +99,8 @@ static int decode_setup_header(void)
 
     setup_modes();
 
+    setup_vectors();
+
     printf("%d bytes of setup stack consumed.\n", setup_get_head());
 
     return 0;
@@ -145,14 +140,14 @@ void decode_audio_packet(void)
 
         decode_floor1(floor_number, i);
 
-        residue_vector_list[i].do_not_decode_flag = !floor_vector_list[i].nonzero;
+        vector_list[i].do_not_decode_flag = !vector_list[i].nonzero;
     }
 
     coupling_step_t *step_list = setup_ref(mapping->coupling_step_list);
     for(int i = 0; i < mapping->coupling_steps; i++) {
-        if(floor_vector_list[step_list[i].magnitude].nonzero || !floor_vector_list[step_list[i].angle].nonzero) {
-            residue_vector_list[step_list[i].magnitude].do_not_decode_flag = 0;
-            residue_vector_list[step_list[i].angle].do_not_decode_flag = 0;
+        if(vector_list[step_list[i].magnitude].nonzero || !vector_list[step_list[i].angle].nonzero) {
+            vector_list[step_list[i].magnitude].do_not_decode_flag = 0;
+            vector_list[step_list[i].angle].do_not_decode_flag = 0;
         }
     }
 

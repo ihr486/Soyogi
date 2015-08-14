@@ -2,7 +2,6 @@
 
 int residue_num = 0;
 residue_header_t *residue_list = NULL;
-residue_vector_t *residue_vector_list = NULL;
 
 static void setup_residue(residue_header_t *residue)
 {
@@ -60,8 +59,6 @@ void setup_residues(void)
             ERROR(ERROR_RESIDUE, "Unknown residue type: %d.\n", residue->type);
         }
     }
-
-    residue_vector_list = setup_ref(setup_allocate_natural(sizeof(residue_vector_t) * audio_channels));
 
     INFO("%d residue configurations decoded.\n", residue_num);
 }
