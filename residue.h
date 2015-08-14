@@ -22,4 +22,7 @@ extern int residue_num;
 extern residue_header_t *residue_list;
 extern residue_vector_t *residue_vector_list;
 
+void setup_residues(void);
+void decode_residue(int n, int index, int channel);
+
 #endif

@@ -65,3 +65,7 @@ void setup_residues(void)
 
     INFO("%d residue configurations decoded.\n", residue_num);
 }
+
+void decode_residue(int n, int index, int channel)
+{
+}

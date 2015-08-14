@@ -51,3 +51,8 @@ inline int render_point(int x0, int y0, int x1, int y1, int X)
         return y0 + off;
     }
 }
+
+inline int max(int a, int b)
+{
+    return (a > b) ? a : b;
+}

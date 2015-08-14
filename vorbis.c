@@ -156,15 +156,15 @@ void decode_audio_packet(void)
         }
     }
 
-    for(int i = 0; i < mapping->submaps; i++) {
-        int ch = 0;
+    if(mapping->submaps == 1) {
+        submap_t *submap = setup_ref(mapping->submap_list);
+        int residue_number = submap->residue;
 
-        for(int j = 0; j < audio_channels; j++) {
-            if(mapping->submaps == 1) {
-            } else {
-                ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
-            }
+        for(int i = 0; i < audio_channels; i++) {
+            decode_residue(n, residue_number, i);
         }
+    } else {
+        ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
     }
 
     setup_set_head(setup_origin);

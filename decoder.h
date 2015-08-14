@@ -39,7 +39,7 @@ extern const float floor1_inverse_dB_table[256];
 
 void setup_codebooks(void);
 uint16_t lookup_scalar(int index);
-void setup_residues(void);
+void lookup_vector(float *v, int index, int step);
 
 extern uint8_t audio_channels;
 
