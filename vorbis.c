@@ -69,7 +69,7 @@ static int decode_comment_header(void)
     for(unsigned int i = 0; i < num_comments; i++) {
         decode_comment(comment);
 
-        printf("%s\n", comment);
+        //printf("%s\n", comment);
     }
     return 0;
 }
@@ -108,17 +108,17 @@ static int decode_setup_header(void)
 
 void decode_audio_packet(void)
 {
-    INFO("Decoding audio packet...\n");
+    //INFO("Decoding audio packet...\n");
 
     int mode_number = read_unsigned_value(ilog(mode_num - 1));
 
-    INFO("\tMode %d.\n", mode_number);
+    //INFO("\tMode %d.\n", mode_number);
 
     mode_t *mode = &mode_list[mode_number];
 
     int n = blocksize[mode->blockflag];
 
-    int previous_window_flag, next_window_flag;
+    int previous_window_flag = 1, next_window_flag = 1;
 
     if(mode->blockflag) {
         previous_window_flag = read_unsigned_value(1);
@@ -159,7 +159,7 @@ void decode_audio_packet(void)
             vector_list[i].do_not_decode_flag = vector_list[i].no_residue;
         }
 
-        INFO("Decoding %d residue vectors according to submap %d...\n", audio_channels, 0);
+        //INFO("Decoding %d residue vectors according to submap %d...\n", audio_channels, 0);
 
         decode_residue(n, residue_number, 0, audio_channels);
     } else {
@@ -180,11 +180,56 @@ void decode_audio_packet(void)
         FDCT_IV(v, n / 2);
 
         for(int j = 0; j < n / 2; j++) {
-            printf("%.3f ", v[j] * 10000.0f);
+            v[j] *= 100.0f;
         }
-        printf("\n");
+
+        //overlap_add(n / 2, i, previous_window_flag);
+
+        float rms = 0.0f;
+        for(int j = 0; j < n / 2; j++) {
+            rms += v[j] * v[j];
+        }
+        printf("\tLevel = %f\n", sqrt(rms));
     }
 
+    int16_t *audio = (int16_t *)malloc(sizeof(int16_t) * n / 2);
+
+    float *v_out = setup_ref(vector_list[0].body);
+    float *rh = setup_ref(vector_list[0].right_hand);
+    if(previous_window_flag && vector_list[0].next_window_flag) {
+        for(int i = 0; i < n / 4; i++) {
+            audio[i] = (int16_t)rh[i];
+            audio[i + n / 4] = (int16_t)v_out[i];
+        }
+        fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
+        /*for(int i = 0; i < n / 2; i++) {
+            printf("%d ", audio[i]);
+        }
+        printf("\n");*/
+    } else {
+        if(previous_window_flag) {
+            for(int i = 0; i < blocksize[0] / 4; i++) {
+                audio[i] = (int16_t)rh[i];
+            }
+            for(int i = 0; i < n / 4; i++) {
+                audio[blocksize[0] / 4 + i] = (int16_t)v_out[i];
+            }
+        } else if(vector_list[0].next_window_flag) {
+            for(int i = 0; i < blocksize[1] / 4; i++) {
+                audio[i] = (int16_t)rh[i];
+            }
+            for(int i = 0; i < n / 4; i++) {
+                audio[blocksize[1] / 4 + i] = (int16_t)v_out[i];
+            }
+        }
+        fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
+    }
+
+    free(audio);
+
+    for(int i = 0; i < audio_channels; i++) {
+        cache_righthand(n / 2, i, next_window_flag);
+    }
     setup_set_head(setup_origin);
 }
 

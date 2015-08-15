@@ -189,6 +189,7 @@ void decode_floor1(int index, int channel)
                 coord_list[i].step2_flag = 0;
                 coord_list[i].Y = predicted;
             }
+            if(coord_list[i].Y >= range) coord_list[i].Y = range - 1;
         }
 
         qsort(coord_list, floor->values, sizeof(floor1_coord_t), compare_coords);
@@ -208,6 +209,11 @@ void synthesize_floor1(int n, int channel)
     int hx = 0, hy = 0, lx = 0;
     int ly = coord_list[0].Y * floor->multiplier;
 
+    /*for(int i = 0; i < floor->values; i++) {
+        printf("(%d %d) ", coord_list[i].X, coord_list[i].Y * floor->multiplier);
+    }
+    printf("\n");*/
+
     for(int i = 1; i < floor->values; i++) {
         if(coord_list[i].step2_flag) {
             hy = coord_list[i].Y * floor->multiplier;
@@ -216,7 +222,7 @@ void synthesize_floor1(int n, int channel)
             int dy = hy - ly;
             int adx = hx - lx;
             int ady = abs(dy);
-            int base = dy / adx;
+            int base = (dy < 0) ? -(ady / adx) : (ady / adx);
             int x = lx;
             int y = ly;
             int err = 0;

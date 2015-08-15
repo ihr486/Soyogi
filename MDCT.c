@@ -92,3 +92,12 @@ void DCT_IV(const float *X, float *Y, int n)
         }
     }
 }
+
+void slow_DCT_IV(float *X, int n)
+{
+    float Y[n];
+
+    DCT_IV(X, Y, n);
+
+    memcpy(X, Y, sizeof(Y));
+}

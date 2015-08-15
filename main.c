@@ -1,5 +1,7 @@
 #include "decoder.h"
 
+FILE *output = NULL;
+
 static FILE *g_source = NULL;
 static uint8_t buf[SECTOR_SIZE];
 static int buf_depth = 0, buf_head = 0;
@@ -54,6 +56,12 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
+    output = popen("/usr/bin/play -t raw -r 44100 -c 1 -e s -b 16 - > /dev/null 2>&1", "w");
+    if(!output) {
+        fprintf(stderr, "Failed to connect to sox.\n");
+        return 1;
+    }
+
     g_source = fp;
 
     int ret;
@@ -63,6 +71,7 @@ int main(int argc, const char *argv[])
         printf("Critical error detected during decode process.\n");
     }
 
+    pclose(output);
     fclose(fp);
 
     return 0;

@@ -75,12 +75,12 @@ void decode_residue(int n, int index, int offset, int channel)
     int actual_size = n / 2;
     int vector_unit = 0, vector_div = 0;
 
-    INFO("\tResidue type %d the size of %d*%d.\n", residue->type, actual_size, channel);
+    //INFO("\tResidue type %d the size of %d*%d.\n", residue->type, actual_size, channel);
 
     if(residue->type == 2) {
         vector_list[offset].body = setup_allocate_natural(sizeof(float) * actual_size * channel);
 
-        for(int i = 1; i < channel; i++) {
+        for(int i = 0; i < channel; i++) {
             vector_list[offset + i].body = vector_list[offset].body + sizeof(float) * actual_size * i;
 
             float *v = setup_ref(vector_list[offset + i].body);
@@ -116,8 +116,8 @@ void decode_residue(int n, int index, int offset, int channel)
 
     uint8_t *classifications = setup_ref(setup_allocate_packed(channel * partitions_to_read));
 
-    INFO("\tDecoding from %d to %d.\n", limit_residue_begin, limit_residue_end);
-    INFO("\tCPC = %d, %d*%d partitions.\n", classwords_per_codeword, residue->partition_size, partitions_to_read);
+    //INFO("\tDecoding from %d to %d.\n", limit_residue_begin, limit_residue_end);
+    //INFO("\tCPC = %d, %d*%d partitions.\n", classwords_per_codeword, residue->partition_size, partitions_to_read);
 
     if(n_to_read) {
         for(int pass = 0; pass < 8; pass++) {

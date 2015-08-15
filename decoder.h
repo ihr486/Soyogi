@@ -1,6 +1,8 @@
 #ifndef DECODER_H
 #define DECODER_H
 
+#define _XOPEN_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -40,10 +42,13 @@ float read_float32(void);
 int decode_packet(void);
 
 void FDCT_IV(float *X, int n);
+void slow_DCT_IV(float *X, int n);
 
 extern uint8_t audio_channels;
 extern uint16_t blocksize[2];
 extern uint32_t audio_sample_rate;
 extern uint32_t bitrate_nominal;
+
+extern FILE *output;
 
 #endif
