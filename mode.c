@@ -1,12 +1,12 @@
 #include "decoder.h"
 
 int mode_num = 0;
-mode_t *mode_list = NULL;
+vorbis_mode_t *mode_list = NULL;
 
 void setup_modes(void)
 {
     mode_num = read_unsigned_value(6) + 1;
-    mode_list = setup_ref(setup_allocate_natural(sizeof(mode_t) * mode_num));
+    mode_list = setup_ref(setup_allocate_natural(sizeof(vorbis_mode_t) * mode_num));
 
     for(int i = 0; i < mode_num; i++) {
         mode_list[i].blockflag = read_unsigned_value(1);

@@ -108,13 +108,9 @@ static int decode_setup_header(void)
 
 void decode_audio_packet(void)
 {
-    //INFO("Decoding audio packet...\n");
-
     int mode_number = read_unsigned_value(ilog(mode_num - 1));
 
-    //INFO("\tMode %d.\n", mode_number);
-
-    mode_t *mode = &mode_list[mode_number];
+    vorbis_mode_t *mode = &mode_list[mode_number];
 
     int n = blocksize[mode->blockflag];
 
@@ -173,10 +169,6 @@ void decode_audio_packet(void)
     for(int i = 0; i < audio_channels; i++) {
         float *v = setup_ref(vector_list[i].body);
 
-        /*for(int j = 0; j < n / 2; j++) {
-            v[j] = 1.0f;
-        }*/
-
         if(vector_list[i].nonzero) {
             synthesize_floor1(n / 2, i);
         }
@@ -188,14 +180,6 @@ void decode_audio_packet(void)
         }
 
         overlap_add(n / 2, i, previous_window_flag);
-
-        float rms = 0.0f;
-        for(int j = 0; j < n / 2; j++) {
-            rms += fabs(v[j]);
-        }
-        if(i == 0) {
-            printf("\tLeve[%d]=%f\n", n, rms / n);
-        }
     }
 
     int16_t *audio = (int16_t *)malloc(sizeof(int16_t) * blocksize[1] / 2);
@@ -207,28 +191,28 @@ void decode_audio_packet(void)
             audio[i] = (int16_t)rh[i];
             audio[i + n / 4] = (int16_t)v_out[i + n / 4];
         }
-        fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
-        /*for(int i = 0; i < n / 2; i++) {
-            printf("%d ", audio[i]);
-        }
-        printf("\n");*/
+        //fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
+        int error;
+        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * n / 2, &error);
     } else {
         if(!previous_window_flag) {
             for(int i = 0; i < blocksize[0] / 4; i++) {
                 audio[i] = (int16_t)rh[i];
             }
-            for(int i = 0; i < n / 4; i++) {
-                audio[blocksize[0] / 4 + i] = (int16_t)v_out[i + n / 4];
+            for(int i = 0; i < blocksize[1] / 4; i++) {
+                audio[blocksize[0] / 4 + i] = (int16_t)v_out[i + blocksize[1] / 4];
             }
         } else if(!vector_list[0].next_window_flag) {
             for(int i = 0; i < blocksize[1] / 4; i++) {
                 audio[i] = (int16_t)rh[i];
             }
-            for(int i = 0; i < n / 4; i++) {
-                audio[blocksize[1] / 4 + i] = (int16_t)v_out[i + n / 4];
+            for(int i = 0; i < blocksize[0] / 4; i++) {
+                audio[blocksize[1] / 4 + i] = (int16_t)v_out[i + blocksize[0] / 4];
             }
         }
-        fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
+        //fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
+        int error;
+        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, &error);
     }
 
     free(audio);

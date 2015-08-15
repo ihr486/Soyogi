@@ -1,6 +1,7 @@
 #include "decoder.h"
 
-FILE *output = NULL;
+//FILE *output = NULL;
+pa_simple *pulse_ctx = NULL;
 
 static FILE *g_source = NULL;
 static uint8_t buf[SECTOR_SIZE];
@@ -43,6 +44,12 @@ uint64_t read_unsigned_long_long(void)
     return (uint64_t)read_unsigned_long() | ((uint64_t)read_unsigned_long() << 32);
 }
 
+static const pa_sample_spec ss = {
+    .format = PA_SAMPLE_S16LE,
+    .rate = 44100,
+    .channels = 1
+};
+
 int main(int argc, const char *argv[])
 {
     if(argc != 2) {
@@ -56,9 +63,16 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    output = popen("/usr/bin/play -t raw -r 44100 -c 1 -e s -b 16 - > /dev/null 2>&1", "w");
+    /*output = popen("/usr/bin/play -t raw -r 44100 -c 1 -e s -b 16 - > /dev/null 2>&1", "w");
     if(!output) {
         fprintf(stderr, "Failed to connect to sox.\n");
+        return 1;
+    }*/
+
+    int error;
+    pulse_ctx = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "Vorbis playback", &ss, NULL, NULL, &error);
+    if(!pulse_ctx) {
+        fprintf(stderr, "Failed to connect to Pulseaudio.\n");
         return 1;
     }
 
@@ -71,7 +85,9 @@ int main(int argc, const char *argv[])
         printf("Critical error detected during decode process.\n");
     }
 
-    pclose(output);
+    pa_simple_free(pulse_ctx);
+
+    //pclose(output);
     fclose(fp);
 
     return 0;

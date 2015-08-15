@@ -22,10 +22,7 @@ static void setup_residue(residue_header_t *residue)
         if(bitflag)
             high_bits = read_unsigned_value(5);
         cascade[i] = (high_bits << 3) | low_bits;
-
-        printf("%d ", cascade[i]);
     }
-    printf("\n");
 
     residue->class_list = setup_allocate_natural(sizeof(residue_class_t) * residue->classifications);
 
@@ -38,10 +35,8 @@ static void setup_residue(residue_header_t *residue)
             } else {
                 class_list[i].books[j] = 255;
             }
-            printf("%d ", class_list[i].books[j]);
         }
     }
-    printf("\n");
 }
 
 void setup_residues(void)

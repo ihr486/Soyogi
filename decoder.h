@@ -12,6 +12,10 @@
 #include <string.h>
 #include <setjmp.h>
 
+#include <pthread.h>
+#include <pulse/pulseaudio.h>
+#include <pulse/simple.h>
+
 #include "misc.h"
 #include "vorbis_helper.h"
 #include "setup.h"
@@ -49,6 +53,7 @@ extern uint16_t blocksize[2];
 extern uint32_t audio_sample_rate;
 extern uint32_t bitrate_nominal;
 
-extern FILE *output;
+//extern FILE *output;
+extern pa_simple *pulse_ctx;
 
 #endif
