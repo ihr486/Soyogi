@@ -15,6 +15,7 @@ static int segment_position = 0;
 bool EOP_flag = 0;
 
 static int packet_size_count = 0;
+static int total_bytes_read = 0;
 
 #define MASK32(n) (((uint64_t)1 << (n)) - 1)
 
@@ -60,6 +61,7 @@ static uint8_t fetch_byte_from_packet(void)
     if(byte_position >= segment_size[segment_position]) {
         if(segment_size[segment_position] < 255) {
             //ERROR(ERROR_OGG, "end-of-packet condition met.\n");
+            INFO("EOP reached.\n");
             EOP_flag = true;
             return 0;
         } else {
@@ -72,6 +74,7 @@ static uint8_t fetch_byte_from_packet(void)
     }
     byte_position++;
     packet_size_count++;
+    total_bytes_read++;
 
     return read_unsigned_byte();
 }
@@ -164,4 +167,5 @@ void decode(void)
 
         close_packet();
     }
+    printf("%d bytes read.\n", total_bytes_read);
 }

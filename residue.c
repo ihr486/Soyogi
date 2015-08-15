@@ -11,6 +11,8 @@ static void setup_residue(residue_header_t *residue)
     residue->classifications = read_unsigned_value(6) + 1;
     residue->classbook = read_unsigned_value(8);
 
+    INFO("Residue: [%d:%d], CB = %d, %d classes.\n", residue->begin, residue->end, residue->classbook, residue->classifications);
+
     uint8_t cascade[64];
 
     for(int i = 0; i < residue->classifications; i++) {
@@ -20,7 +22,10 @@ static void setup_residue(residue_header_t *residue)
         if(bitflag)
             high_bits = read_unsigned_value(5);
         cascade[i] = (high_bits << 3) | low_bits;
+
+        printf("%d ", cascade[i]);
     }
+    printf("\n");
 
     residue->class_list = setup_allocate_natural(sizeof(residue_class_t) * residue->classifications);
 
@@ -68,11 +73,14 @@ void decode_residue(int n, int index, int offset, int channel)
     residue_header_t *residue = &residue_list[index];
 
     int actual_size = n / 2;
+
+    INFO("\tResidue type %d the size of %d*%d.\n", residue->type, actual_size, channel);
+
     if(residue->type == 2) {
         vector_list[offset].body = setup_allocate_natural(sizeof(float) * actual_size * channel);
 
         for(int i = 1; i < channel; i++) {
-            vector_list[offset + i].body = vector_list[offset].body + 4 * actual_size * i;
+            vector_list[offset + i].body = vector_list[offset].body + sizeof(float) * actual_size * i;
 
             float *v = setup_ref(vector_list[offset + i].body);
 
@@ -104,6 +112,9 @@ void decode_residue(int n, int index, int offset, int channel)
 
     uint8_t *classifications = setup_ref(setup_allocate_packed(channel * partitions_to_read));
 
+    INFO("\tDecoding from %d to %d.\n", limit_residue_begin, limit_residue_end);
+    INFO("\tCPC = %d, %d*%d partitions.\n", classwords_per_codeword, residue->partition_size, partitions_to_read);
+
     if(n_to_read) {
         for(int pass = 0; pass < 8; pass++) {
             int partition_count = 0;
@@ -113,8 +124,6 @@ void decode_residue(int n, int index, int offset, int channel)
                     for(int j = 0; j < channel; j++) {
                         if(!vector_list[offset + j].do_not_decode_flag) {
                             int temp = lookup_scalar(residue->classbook);
-
-                            printf("CW[%d]", temp);
 
                             if(temp < 0) return;
 
@@ -135,36 +144,25 @@ void decode_residue(int n, int index, int offset, int channel)
                             residue_class_t *class_list = setup_ref(residue->class_list);
                             int vqbook = class_list[vqclass].books[pass];
 
-                            if(vqbook < 255) {
+                            if(vqbook != 255) {
                                 switch(residue->type) {
                                 case 0: {
                                     int step = residue->partition_size / codebook_list[vqbook].dimension;
 
                                     for(int k = 0; k < step; k++) {
-                                        printf("VQ0@%d:[", vqbook);
-
                                         if(lookup_vector(v + (limit_residue_begin + partition_count * residue->partition_size) + k, vqbook, step) == 0) return;
-
-                                        for(int l = 0; l < codebook_list[vqbook].dimension; l++) {
-                                            //printf("%f ", v[(limit_residue_begin + partition_count * residue->partition_size) + k + l * step]);
-                                        }
-
-                                        printf("]");
                                     }
                                 } break;
                                 case 1:
                                 case 2: {
                                     for(int k = 0; k < residue->partition_size; k += codebook_list[vqbook].dimension) {
-                                        printf("VQ12@%d:[", vqbook);
                                         if(lookup_vector(v + (limit_residue_begin + partition_count * residue->partition_size) + k, vqbook, 1) == 0) return;
-                                        for(int l = 0; l < codebook_list[vqbook].dimension; l++) {
-                                            //printf("%f ", v[(limit_residue_begin + partition_count * residue->partition_size) + k + l]);
-                                        }
-                                        printf("]");
                                     }
                                 } break;
                                 }
                             }
+                        } else {
+                            INFO("\tSkipping vector %d.\n", j);
                         }
                     }
                     partition_count++;

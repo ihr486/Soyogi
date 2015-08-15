@@ -34,7 +34,7 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
     level_depth[length - 1] = codeword + 1;
     codeword <<= 32 - length;
 
-    printf("\tCodeword[%d]:%d = %#X\n", index, length, codeword);
+    //INFO("\tCodeword[%d]:%d = %#X\n", index, length, codeword);
 
     uint16_t pos = cb->huffman;
 
@@ -245,16 +245,11 @@ int16_t lookup_scalar(int index)
     int16_t ret = 0;
 
     if(cb->entries < 128) {
-        //printf("L1[%d]", index);
         while(!(pos & 0x80)) {
-            pos += read_unsigned_value(1);
-
-            pos = setup_get_byte(cb->huffman + pos);
+            pos = setup_get_byte(cb->huffman + pos * 2 + read_unsigned_value(1));
         }
-        //printf("=%d ", pos & 0x7F);
         ret = pos & 0x7F;
     } else if(cb->entries < 2048) {
-        //printf("L2[%d]", index);
         while(!(pos & 0x800)) {
             if(read_unsigned_value(1)) {
                 pos = ((uint16_t)setup_get_byte(cb->huffman + pos * 3 + 2) << 4) | (setup_get_byte(cb->huffman + pos * 3 + 1) >> 4);
@@ -262,16 +257,13 @@ int16_t lookup_scalar(int index)
                 pos = ((uint16_t)(setup_get_byte(cb->huffman + pos * 3 + 1) & 0x0F) << 8) | setup_get_byte(cb->huffman + pos * 3);
             }
         }
-        //printf("=%d ", pos & 0x7FF);
         ret = pos & 0x7FF;
     } else {
-        //printf("L3[%d]", index);
         while(!(pos & 0x8000)) {
-            pos += read_unsigned_value(1) * 2;
+            pos = pos * 4 + read_unsigned_value(1) * 2;
 
-            pos = ((uint16_t)setup_get_byte(cb->huffman + pos * 4 + 1) << 8) | setup_get_byte(cb->huffman + pos * 4);
+            pos = ((uint16_t)setup_get_byte(cb->huffman + pos + 1) << 8) | setup_get_byte(cb->huffman + pos);
         }
-        //printf("=%d ", pos & 0x7FFF);
         ret = pos & 0x7FFF;
     }
     return EOP_flag ? -1 : ret;

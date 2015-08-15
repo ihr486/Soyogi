@@ -81,12 +81,10 @@ static void setup_floor1(int index)
 
         for(int j = 0; j < class_list[current_class_number].dimension; j++) {
             uint16_t X_value = read_unsigned_value(f->rangebits);
-            printf("%u ", X_value);
             setup_push_short(X_value);
             f->values++;
         }
     }
-    printf("\n");
 }
 
 static int compare_coords(const void *a, const void *b)
@@ -193,12 +191,6 @@ void decode_floor1(int index, int channel)
         }
 
         qsort(coord_list, floor->values, sizeof(floor1_coord_t), compare_coords);
-
-        printf("\t");
-        for(unsigned int i = 0; i < floor->values; i++) {
-            printf("(%d, %d) ", coord_list[i].X, coord_list[i].Y);
-        }
-        printf("\n");
 
         //setup_set_head(src_Y_list);
     }
