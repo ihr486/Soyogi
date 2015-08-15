@@ -2,7 +2,7 @@
 Floating-point Ogg/Vorbis decoder for embedded platforms
 
 ## Overview
-Soyogi is designed to run on some variants of Renesas RX231 MCU,
+Soyogi(そよぎ、"tremor" in Japanese) is designed to run on some variants of Renesas RX231 MCU,
 with at least 64KB of RAM and 128KB of Code Flash.
 
 Its salient features include:
