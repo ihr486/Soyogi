@@ -12,6 +12,7 @@ static uint8_t segment_size[255];
 static uint64_t buffer = 0;
 static int bit_position = 0, byte_position = 0;
 static int segment_position = 0;
+bool EOP_flag = 0;
 
 static int packet_size_count = 0;
 
@@ -58,7 +59,8 @@ static uint8_t fetch_byte_from_packet(void)
 {
     if(byte_position >= segment_size[segment_position]) {
         if(segment_size[segment_position] < 255) {
-            ERROR(ERROR_OGG, "end-of-packet condition met.\n");
+            //ERROR(ERROR_OGG, "end-of-packet condition met.\n");
+            EOP_flag = true;
             return 0;
         } else {
             if(++segment_position >= page_segments) {
@@ -118,10 +120,13 @@ float read_float32(void)
 
 static void close_packet(void)
 {
+    int remainder = 0;
+
     while(1) {
         for(; byte_position < segment_size[segment_position]; byte_position++) {
             read_unsigned_byte();
             packet_size_count++;
+            remainder++;
         }
         if(segment_size[segment_position] == 255) {
             if(++segment_position >= page_segments) {
@@ -132,6 +137,8 @@ static void close_packet(void)
             break;
         }
     }
+    if(remainder)
+        INFO("%d/%d bytes read\n", packet_size_count - remainder, packet_size_count);
     //printf("Packet size = %d.\n", packet_size_count);
 }
 
@@ -144,6 +151,7 @@ static int open_packet(void)
     byte_position = 0;
     bit_position = 0;
     packet_size_count = 0;
+    EOP_flag = false;
     return 0;
 }
 

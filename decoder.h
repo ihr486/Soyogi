@@ -18,6 +18,7 @@
 #include "floor1.h"
 #include "residue.h"
 #include "vector.h"
+#include "codebook.h"
 
 #define SECTOR_SIZE (512)
 
@@ -29,6 +30,7 @@ uint32_t read_unsigned_long(void);
 uint64_t read_unsigned_long_long(void);
 
 bool reached_EOF(void);
+extern bool EOP_flag;
 
 uint32_t read_unsigned_value(int n);
 int32_t read_signed_value(int n);
@@ -37,10 +39,6 @@ float read_float32(void);
 int decode_packet(void);
 
 extern const float floor1_inverse_dB_table[256];
-
-void setup_codebooks(void);
-uint16_t lookup_scalar(int index);
-void lookup_vector(float *v, int index, int step);
 
 extern uint8_t audio_channels;
 extern uint16_t blocksize[2];

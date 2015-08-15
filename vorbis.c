@@ -140,14 +140,14 @@ void decode_audio_packet(void)
 
         decode_floor1(floor_number, i);
 
-        vector_list[i].do_not_decode_flag = !vector_list[i].nonzero;
+        vector_list[i].no_residue = !vector_list[i].nonzero;
     }
 
     coupling_step_t *step_list = setup_ref(mapping->coupling_step_list);
     for(int i = 0; i < mapping->coupling_steps; i++) {
         if(vector_list[step_list[i].magnitude].nonzero || !vector_list[step_list[i].angle].nonzero) {
-            vector_list[step_list[i].magnitude].do_not_decode_flag = 0;
-            vector_list[step_list[i].angle].do_not_decode_flag = 0;
+            vector_list[step_list[i].magnitude].no_residue = 0;
+            vector_list[step_list[i].angle].no_residue = 0;
         }
     }
 
@@ -156,8 +156,12 @@ void decode_audio_packet(void)
         int residue_number = submap->residue;
 
         for(int i = 0; i < audio_channels; i++) {
-            decode_residue(n, residue_number, i);
+            vector_list[i].do_not_decode_flag = vector_list[i].no_residue;
         }
+
+        INFO("Decoding %d residue vectors according to submap %d...\n", audio_channels, 0);
+
+        decode_residue(n, residue_number, 0, audio_channels);
     } else {
         ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
     }

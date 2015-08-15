@@ -1,24 +1,7 @@
 #include "decoder.h"
 
-typedef struct codebook_tag {
-    uint16_t entries;
-    uint8_t dimension;
-    uint8_t lookup_type;
-    uint16_t huffman;
-    uint16_t lookup;
-} codebook_t;
-
-typedef struct VQ_header_tag {
-    float minimum_value;
-    float delta_value;
-    uint8_t sequence_p;
-    uint8_t lookup_mode;
-    uint16_t lookup_values;
-    uint16_t table;
-} VQ_header_t;
-
-static int codebook_num = 0;
-static codebook_t *codebook_list = NULL;
+int codebook_num = 0;
+codebook_t *codebook_list = NULL;
 
 static void decode_codebook(int index);
 
@@ -254,11 +237,12 @@ static void decode_codebook(int index)
     }
 }
 
-uint16_t lookup_scalar(int index)
+int16_t lookup_scalar(int index)
 {
     codebook_t *cb = &codebook_list[index];
 
     uint16_t pos = 0;
+    int16_t ret = 0;
 
     if(cb->entries < 128) {
         //printf("L1[%d]", index);
@@ -268,7 +252,7 @@ uint16_t lookup_scalar(int index)
             pos = setup_get_byte(cb->huffman + pos);
         }
         //printf("=%d ", pos & 0x7F);
-        return pos & 0x7F;
+        ret = pos & 0x7F;
     } else if(cb->entries < 2048) {
         //printf("L2[%d]", index);
         while(!(pos & 0x800)) {
@@ -279,7 +263,7 @@ uint16_t lookup_scalar(int index)
             }
         }
         //printf("=%d ", pos & 0x7FF);
-        return pos & 0x7FF;
+        ret = pos & 0x7FF;
     } else {
         //printf("L3[%d]", index);
         while(!(pos & 0x8000)) {
@@ -288,16 +272,19 @@ uint16_t lookup_scalar(int index)
             pos = ((uint16_t)setup_get_byte(cb->huffman + pos * 4 + 1) << 8) | setup_get_byte(cb->huffman + pos * 4);
         }
         //printf("=%d ", pos & 0x7FFF);
-        return pos & 0x7FFF;
+        ret = pos & 0x7FFF;
     }
+    return EOP_flag ? -1 : ret;
 }
 
-void lookup_vector(float *v, int index, int step)
+int lookup_vector(float *v, int index, int step)
 {
     codebook_t *cb = &codebook_list[index];
     VQ_header_t *vq = setup_ref(cb->lookup);
 
     int lookup_offset = lookup_scalar(index);
+
+    if(lookup_offset < 0) return 0;
 
     switch(cb->lookup_type) {
     case 1: {
@@ -305,22 +292,24 @@ void lookup_vector(float *v, int index, int step)
         int index_divisor = 1;
         for(int i = 0; i < cb->dimension; i++) {
             int multiplicand_offset = (lookup_offset / index_divisor) % vq->lookup_values;
+            float element;
 
             switch(vq->lookup_mode) {
             case 8:
-                v[i * step] = setup_get_byte(vq->table + multiplicand_offset) * vq->delta_value + vq->minimum_value + last;
+                element = setup_get_byte(vq->table + multiplicand_offset) * vq->delta_value + vq->minimum_value + last;
                 break;
             case 16:
-                v[i * step] = setup_get_short(vq->table + multiplicand_offset * 2) * vq->delta_value + vq->minimum_value + last;
+                element = setup_get_short(vq->table + multiplicand_offset * 2) * vq->delta_value + vq->minimum_value + last;
                 break;
             default:
                 ERROR(ERROR_VQ, "Unknown lookup mode: %d.\n", vq->lookup_mode);
             }
 
             if(vq->sequence_p) {
-                last = v[i * step];
+                last = element;
             }
 
+            v[i * step] = element;
             index_divisor *= vq->lookup_values;
         }
     } break;
@@ -328,25 +317,29 @@ void lookup_vector(float *v, int index, int step)
         float last = 0;
         int multiplicand_offset = lookup_offset * cb->dimension;
         for(int i = 0; i < cb->dimension; i++) {
+            float element;
+
             switch(vq->lookup_mode) {
             case 8:
-                v[i * step] = setup_get_byte(vq->table + multiplicand_offset) * vq->delta_value + vq->minimum_value + last;
+                element = setup_get_byte(vq->table + multiplicand_offset) * vq->delta_value + vq->minimum_value + last;
                 break;
             case 16:
-                v[i * step] = setup_get_short(vq->table + multiplicand_offset * 2) * vq->delta_value + vq->minimum_value + last;
+                element = setup_get_short(vq->table + multiplicand_offset * 2) * vq->delta_value + vq->minimum_value + last;
                 break;
             default:
                 ERROR(ERROR_VQ, "Unknown lookup mode: %d.\n", vq->lookup_mode);
             }
 
             if(vq->sequence_p) {
-                last = v[i * step];
+                last = element;
             }
 
+            v[i * step] += element;
             multiplicand_offset++;
         }
     } break;
     default:
         ERROR(ERROR_VQ, "VQ lookup requested for a scalar codebook.\n");
     }
+    return cb->dimension;
 }
