@@ -89,8 +89,6 @@ static int decode_setup_header(void)
         }
     }
 
-    printf("%d time domain transforms decoded.\n", time_count);
-
     setup_floors();
 
     setup_residues();
@@ -176,7 +174,7 @@ void decode_audio_packet(void)
         FDCT_IV(v, n / 2);
 
         for(int j = 0; j < n / 2; j++) {
-            v[j] *= 3000.f;
+            v[j] *= 300000.f;
         }
 
         overlap_add(n / 2, i, previous_window_flag);
@@ -191,7 +189,7 @@ void decode_audio_packet(void)
             audio[i] = (int16_t)rh[i];
             audio[i + n / 4] = (int16_t)v_out[i + n / 4];
         }
-        //fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
+        fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
         int error;
         pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * n / 2, &error);
     } else {
@@ -210,7 +208,7 @@ void decode_audio_packet(void)
                 audio[blocksize[1] / 4 + i] = (int16_t)v_out[i + blocksize[0] / 4];
             }
         }
-        //fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
+        fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
         int error;
         pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, &error);
     }

@@ -86,22 +86,3 @@ void FDCT_IV(float *X, int n)
         //X[i] *= n;
     }
 }
-
-void DCT_IV(const float *X, float *Y, int n)
-{
-    for(int i = 0; i < n; i++) {
-        Y[i] = 0;
-        for(int j = 0; j < n; j++) {
-            Y[i] += X[j] * cos(PI / n * (i + 0.5) * (j + 0.5));
-        }
-    }
-}
-
-void slow_DCT_IV(float *X, int n)
-{
-    float Y[n];
-
-    DCT_IV(X, Y, n);
-
-    memcpy(X, Y, sizeof(Y));
-}

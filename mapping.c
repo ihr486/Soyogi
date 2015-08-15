@@ -16,15 +16,11 @@ void setup_mappings(void)
         if(mapping_type)
             ERROR(ERROR_MAPPING, "Unsupported mapping type: %d.\n", mapping_type);
 
-        INFO("Mapping #%d:\n", i);
-
         if(read_unsigned_value(1)) {
             mapping->submaps = read_unsigned_value(4);
         } else {
             mapping->submaps = 1;
         }
-
-        INFO("\t%d submaps.\n", mapping->submaps);
 
         if(read_unsigned_value(1)) {
             mapping->coupling_steps = read_unsigned_value(8) + 1;
@@ -34,8 +30,6 @@ void setup_mappings(void)
             for(int j = 0; j < mapping->coupling_steps; j++) {
                 step_list[j].magnitude = read_unsigned_value(ilog(audio_channels - 1));
                 step_list[j].angle = read_unsigned_value(ilog(audio_channels - 1));
-
-                INFO("\tCoupling step #%d: Ch[%d] as magnitude and Ch[%d] as angle.\n", j, step_list[j].magnitude, step_list[j].angle);
             }
         } else {
             mapping->coupling_steps = 0;
@@ -63,8 +57,6 @@ void setup_mappings(void)
 
             submap_list[j].floor = read_unsigned_value(8);
             submap_list[j].residue = read_unsigned_value(8);
-
-            INFO("\tSubmap #%d: Floor %d, Residue %d.\n", j, submap_list[j].floor, submap_list[j].residue);
         }
     }
 }

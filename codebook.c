@@ -34,8 +34,6 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
     level_depth[length - 1] = codeword + 1;
     codeword <<= 32 - length;
 
-    //INFO("\tCodeword[%d]:%d = %#X\n", index, length, codeword);
-
     uint16_t pos = cb->huffman;
 
     if(cb->entries < 128) {
@@ -146,8 +144,6 @@ static void decode_codebook(int index)
     cb->lookup_type = 0;
     cb->huffman = setup_get_head();
 
-    INFO("Codebook[%d]: %dD * %d entries\n", index, cb->dimension, cb->entries);
-
     uint32_t level_depth[32];
 
     memset(level_depth, 0, sizeof(level_depth));
@@ -193,8 +189,6 @@ static void decode_codebook(int index)
     cb->lookup_type = read_unsigned_value(4);
 
     if(cb->lookup_type > 0) {
-        INFO("\tVQ lookup type %d.\n", cb->lookup_type);
-
         cb->lookup = setup_allocate_natural(sizeof(VQ_header_t));
 
         VQ_header_t *header = setup_ref(cb->lookup);
@@ -212,8 +206,6 @@ static void decode_codebook(int index)
         } else {
             ERROR(ERROR_VQ, "Unsupported VQ type %d.\n", cb->lookup_type);
         }
-
-        INFO("\t%d bits * %d lookup values\n", value_bits, header->lookup_values);
 
         if(value_bits <= 8) {
             header->lookup_mode = 8;
@@ -302,7 +294,6 @@ int lookup_vector(float *v, int offset, int index, int step, int period)
             }
 
             v[(offset + i) / period + ((offset + i) % period) * step] += element;
-            //printf("@%d", (offset + i) / period + ((offset + i) % period) * step);
             index_divisor *= vq->lookup_values;
         }
     } break;

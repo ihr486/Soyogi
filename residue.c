@@ -11,8 +11,6 @@ static void setup_residue(residue_header_t *residue)
     residue->classifications = read_unsigned_value(6) + 1;
     residue->classbook = read_unsigned_value(8);
 
-    INFO("Residue: [%d:%d], CB = %d, %d classes.\n", residue->begin, residue->end, residue->classbook, residue->classifications);
-
     uint8_t cascade[64];
 
     for(int i = 0; i < residue->classifications; i++) {
@@ -59,8 +57,6 @@ void setup_residues(void)
             ERROR(ERROR_RESIDUE, "Unknown residue type: %d.\n", residue->type);
         }
     }
-
-    INFO("%d residue configurations decoded.\n", residue_num);
 }
 
 void decode_residue(int n, int index, int offset, int channel)
@@ -69,8 +65,6 @@ void decode_residue(int n, int index, int offset, int channel)
 
     int actual_size = n / 2;
     int vector_unit = 0, vector_div = 0;
-
-    //INFO("Residue type %d the size of %d*%d.\n", residue->type, actual_size, channel);
 
     if(residue->type == 2) {
         vector_list[offset].body = setup_allocate_natural(sizeof(float) * actual_size * channel);
@@ -111,9 +105,6 @@ void decode_residue(int n, int index, int offset, int channel)
 
     uint8_t *classifications = setup_ref(setup_allocate_packed(channel * partitions_to_read));
 
-    //INFO("\tDecoding from %d to %d.\n", limit_residue_begin, limit_residue_end);
-    //INFO("\tCPC = %d, %d*%d partitions.\n", classwords_per_codeword, residue->partition_size, partitions_to_read);
-
     if(n_to_read) {
         for(int pass = 0; pass < 8; pass++) {
             int partition_count = 0;
@@ -123,8 +114,6 @@ void decode_residue(int n, int index, int offset, int channel)
                     for(int j = 0; j < channel; j++) {
                         if(!vector_list[offset + j].do_not_decode_flag) {
                             int temp = lookup_scalar(residue->classbook);
-
-                            //printf("CW[%d]", temp);
 
                             if(temp < 0) return;
 

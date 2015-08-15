@@ -1,6 +1,6 @@
 #include "decoder.h"
 
-//FILE *output = NULL;
+FILE *output = NULL;
 pa_simple *pulse_ctx = NULL;
 
 static FILE *g_source = NULL;
@@ -63,11 +63,11 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    /*output = popen("/usr/bin/play -t raw -r 44100 -c 1 -e s -b 16 - > /dev/null 2>&1", "w");
+    output = popen("sox -t raw -b 16 -e s -r 44100 - -t wav -b 16 -e s -r 44100 output.wav", "w");
     if(!output) {
         fprintf(stderr, "Failed to connect to sox.\n");
         return 1;
-    }*/
+    }
 
     int error;
     pulse_ctx = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "Vorbis playback", &ss, NULL, NULL, &error);
@@ -86,8 +86,7 @@ int main(int argc, const char *argv[])
     }
 
     pa_simple_free(pulse_ctx);
-
-    //pclose(output);
+    pclose(output);
     fclose(fp);
 
     return 0;
