@@ -100,6 +100,7 @@ void decode_floor1(int index, int channel)
     vector_t *vector = &vector_list[channel];
 
     vector->nonzero = read_unsigned_value(1);
+    vector->floor = index;
 
     if(vector->nonzero) {
         int range = range_list[floor->multiplier - 1];
@@ -193,5 +194,55 @@ void decode_floor1(int index, int channel)
         qsort(coord_list, floor->values, sizeof(floor1_coord_t), compare_coords);
 
         //setup_set_head(src_Y_list);
+    }
+}
+
+void synthesize_floor1(int n, int channel)
+{
+    vector_t *vector = &vector_list[channel];
+    floor1_header_t *floor = &floor_list[vector->floor];
+    floor1_coord_t *coord_list = setup_ref(vector->coord_list);
+
+    float *v = setup_ref(vector->body);
+
+    int hx = 0, hy = 0, lx = 0;
+    int ly = coord_list[0].Y * floor->multiplier;
+
+    for(int i = 1; i < floor->values; i++) {
+        if(coord_list[i].step2_flag) {
+            hy = coord_list[i].Y * floor->multiplier;
+            hx = coord_list[i].X;
+
+            int dy = hy - ly;
+            int adx = hx - lx;
+            int ady = abs(dy);
+            int base = dy / adx;
+            int x = lx;
+            int y = ly;
+            int err = 0;
+            int sy = (dy < 0) ? (base - 1) : (base + 1);
+
+            ady -= abs(base) * adx;
+
+            v[x] *= floor1_inverse_dB_table[y];
+
+            for(x = lx + 1; x < min(hx, n); x++) {
+                err += ady;
+                if(err >= adx) {
+                    err -= adx;
+                    y += sy;
+                } else {
+                    y += base;
+                }
+
+                v[x] *= floor1_inverse_dB_table[y];
+            }
+
+            lx = hx;
+            ly = hy;
+        }
+    }
+    for(; hx < n; hx++) {
+        v[hx] *= floor1_inverse_dB_table[hy];
     }
 }

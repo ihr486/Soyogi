@@ -38,6 +38,8 @@ float read_float32(void);
 
 int decode_packet(void);
 
+void FDCT_IV(float *X, int n);
+
 extern const float floor1_inverse_dB_table[256];
 
 extern uint8_t audio_channels;

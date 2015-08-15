@@ -166,6 +166,25 @@ void decode_audio_packet(void)
         ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
     }
 
+    for(int i = 0; i < mapping->coupling_steps; i++) {
+        decouple_square_polar(n / 2, step_list[i].magnitude, step_list[i].angle);
+    }
+
+    for(int i = 0; i < audio_channels; i++) {
+        if(vector_list[i].nonzero) {
+            synthesize_floor1(n / 2, i);
+        }
+
+        float *v = setup_ref(vector_list[i].body);
+
+        FDCT_IV(v, n / 2);
+
+        for(int j = 0; j < n / 2; j++) {
+            printf("%.3f ", v[j] * 10000.0f);
+        }
+        printf("\n");
+    }
+
     setup_set_head(setup_origin);
 }
 
