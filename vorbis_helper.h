@@ -20,7 +20,7 @@ inline int low_neighbor(uint16_t *v, int x)
     int ret = x;
     uint16_t max = 0;
     for(int i = 0; i < x; i++) {
-        if(max < v[i] && v[i] < v[x]) {
+        if(max <= v[i] && v[i] < v[x]) {
             ret = i;
             max = v[i];
         }
@@ -33,7 +33,7 @@ inline int high_neighbor(uint16_t *v, int x)
     int ret = x;
     uint16_t min = 65535;
     for(int i = 0; i < x; i++) {
-        if(v[x] < v[i] && v[i] < min) {
+        if(v[x] < v[i] && v[i] <= min) {
             ret = i;
             min = v[i];
         }

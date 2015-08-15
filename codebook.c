@@ -301,7 +301,8 @@ int lookup_vector(float *v, int offset, int index, int step, int period)
                 last = element;
             }
 
-            v[(offset + i) / period + ((offset + i) % period) * step] = element;
+            v[(offset + i) / period + ((offset + i) % period) * step] += element;
+            //printf("@%d", (offset + i) / period + ((offset + i) % period) * step);
             index_divisor *= vq->lookup_values;
         }
     } break;

@@ -75,7 +75,7 @@ void decode_residue(int n, int index, int offset, int channel)
     int actual_size = n / 2;
     int vector_unit = 0, vector_div = 0;
 
-    //INFO("\tResidue type %d the size of %d*%d.\n", residue->type, actual_size, channel);
+    //INFO("Residue type %d the size of %d*%d.\n", residue->type, actual_size, channel);
 
     if(residue->type == 2) {
         vector_list[offset].body = setup_allocate_natural(sizeof(float) * actual_size * channel);
@@ -128,6 +128,8 @@ void decode_residue(int n, int index, int offset, int channel)
                     for(int j = 0; j < channel; j++) {
                         if(!vector_list[offset + j].do_not_decode_flag) {
                             int temp = lookup_scalar(residue->classbook);
+
+                            //printf("CW[%d]", temp);
 
                             if(temp < 0) return;
 

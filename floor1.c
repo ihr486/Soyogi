@@ -23,8 +23,6 @@ void setup_floors(void)
             ERROR(ERROR_FLOOR, "Unknown floor type: %d.\n", floor_type);
         }
     }
-
-    INFO("%d floor configurations decoded.\n", floor_num);
 }
 
 static void setup_floor1(int index)
@@ -193,8 +191,6 @@ void decode_floor1(int index, int channel)
         }
 
         qsort(coord_list, floor->values, sizeof(floor1_coord_t), compare_coords);
-
-        //setup_set_head(src_Y_list);
     }
 }
 
@@ -208,11 +204,6 @@ void synthesize_floor1(int n, int channel)
 
     int hx = 0, hy = 0, lx = 0;
     int ly = coord_list[0].Y * floor->multiplier;
-
-    /*for(int i = 0; i < floor->values; i++) {
-        printf("(%d %d) ", coord_list[i].X, coord_list[i].Y * floor->multiplier);
-    }
-    printf("\n");*/
 
     for(int i = 1; i < floor->values; i++) {
         if(coord_list[i].step2_flag) {

@@ -8,6 +8,7 @@ void setup_vectors(void)
 
     for(int i = 0; i < audio_channels; i++) {
         vector_list[i].right_hand = setup_allocate_natural(sizeof(float) * blocksize[1] / 4);
+        vector_list[i].next_window_flag = 1;
 
         float *v = setup_ref(vector_list[i].right_hand);
 
@@ -22,7 +23,7 @@ void decouple_square_polar(int n, int magnitude, int angle)
     float *M = setup_ref(vector_list[magnitude].body);
     float *A = setup_ref(vector_list[angle].body);
 
-    for(int i = 0; i < n / 2; i++) {
+    for(int i = 0; i < n; i++) {
         float new_M, new_A;
 
         if(M[i] > 0.0f) {
@@ -93,11 +94,17 @@ void apply_window(float *A, float *B, int n)
     }
 
     for(int i = 0; i < n / 2; i++) {
-        float alpha = -win[n - i] * A[n / 2 - i] + win[i] * B[i];
-        float beta = -win[i] * A[n / 2 - i] - win[n - i] * B[i];
+        float alpha = -win[i] * A[n / 2 - i] - win[n - i] * B[i];
+        float beta = -win[n - i] * A[n / 2 - i] + win[i] * B[i];
 
         A[n / 2 - i] = alpha;
         B[i] = beta;
+    }
+
+    for(int i = 0; i < n / 2; i++) {
+        float t = A[i];
+        A[i] = B[i];
+        B[i] = t;
     }
 }
 
@@ -111,9 +118,9 @@ void overlap_add(int n, int channel, int previous_window_flag)
     if(previous_window_flag && vector->next_window_flag) {
         apply_window(rh, v + n / 2, n);
     } else {
-        if(previous_window_flag) {
+        if(!previous_window_flag) {
             apply_window(rh, v + n / 2, blocksize[0] / 2);
-        } else if(vector->next_window_flag) {
+        } else if(!vector->next_window_flag) {
             apply_window(rh + ((blocksize[1] - blocksize[0]) / 4), v + n / 2, n);
         } else {
             ERROR(ERROR_VORBIS, "Illegal overlapping condition.\n");
