@@ -73,6 +73,7 @@ void decode_residue(int n, int index, int offset, int channel)
     residue_header_t *residue = &residue_list[index];
 
     int actual_size = n / 2;
+    int vector_unit = 0, vector_div = 0;
 
     INFO("\tResidue type %d the size of %d*%d.\n", residue->type, actual_size, channel);
 
@@ -88,6 +89,9 @@ void decode_residue(int n, int index, int offset, int channel)
                 v[j] = 0.0f;
             }
         }
+
+        vector_unit = actual_size;
+        vector_div = channel;
         
         actual_size *= channel;
         channel = 1;
@@ -137,7 +141,6 @@ void decode_residue(int n, int index, int offset, int channel)
                 }
                 for(int i = 0; i < classwords_per_codeword && partition_count < partitions_to_read; i++) {
                     for(int j = 0; j < channel; j++) {
-                        float *v = setup_ref(vector_list[offset + j].body);
                         if(!vector_list[offset + j].do_not_decode_flag) {
                             int vqclass = classifications[j * partitions_to_read + partition_count];
 
@@ -145,20 +148,31 @@ void decode_residue(int n, int index, int offset, int channel)
                             int vqbook = class_list[vqclass].books[pass];
 
                             if(vqbook != 255) {
-                                switch(residue->type) {
-                                case 0: {
-                                    int step = residue->partition_size / codebook_list[vqbook].dimension;
+                                int step = 0, period = 0, origin = 0, base = 0;
 
-                                    for(int k = 0; k < step; k++) {
-                                        if(lookup_vector(v + (limit_residue_begin + partition_count * residue->partition_size) + k, vqbook, step) == 0) return;
-                                    }
-                                } break;
+                                switch(residue->type) {
+                                case 0:
+                                    step = residue->partition_size / codebook_list[vqbook].dimension;
+                                    period = codebook_list[vqbook].dimension;
+                                    origin = residue->partition_size * partition_count + limit_residue_begin;
+                                    base = 0;
+                                    break;
                                 case 1:
-                                case 2: {
-                                    for(int k = 0; k < residue->partition_size; k += codebook_list[vqbook].dimension) {
-                                        if(lookup_vector(v + (limit_residue_begin + partition_count * residue->partition_size) + k, vqbook, 1) == 0) return;
-                                    }
-                                } break;
+                                    step = 1;
+                                    period = 1;
+                                    origin = residue->partition_size * partition_count + limit_residue_begin;
+                                    base = 0;
+                                    break;
+                                case 2:
+                                    step = vector_unit;
+                                    period = vector_div;
+                                    origin = 0;
+                                    base = residue->partition_size * partition_count + limit_residue_begin;
+                                    break;
+                                }
+
+                                for(int k = 0; k < residue->partition_size; k += codebook_list[vqbook].dimension) {
+                                    if(!lookup_vector((float *)setup_ref(vector_list[offset + j].body) + origin, k + base, vqbook, step, period)) return;
                                 }
                             }
                         } else {
@@ -169,9 +183,5 @@ void decode_residue(int n, int index, int offset, int channel)
                 }
             }
         }
-    }
-
-    if(residue->type == 2) {
-
     }
 }

@@ -269,7 +269,7 @@ int16_t lookup_scalar(int index)
     return EOP_flag ? -1 : ret;
 }
 
-int lookup_vector(float *v, int index, int step)
+int lookup_vector(float *v, int offset, int index, int step, int period)
 {
     codebook_t *cb = &codebook_list[index];
     VQ_header_t *vq = setup_ref(cb->lookup);
@@ -301,7 +301,7 @@ int lookup_vector(float *v, int index, int step)
                 last = element;
             }
 
-            v[i * step] = element;
+            v[(offset + i) / period + ((offset + i) % period) * step] = element;
             index_divisor *= vq->lookup_values;
         }
     } break;
@@ -326,7 +326,7 @@ int lookup_vector(float *v, int index, int step)
                 last = element;
             }
 
-            v[i * step] += element;
+            v[(offset + i) / period + ((offset + i) % period) * step] += element;
             multiplicand_offset++;
         }
     } break;

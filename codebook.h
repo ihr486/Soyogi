@@ -23,6 +23,6 @@ extern codebook_t *codebook_list;
 
 void setup_codebooks(void);
 int16_t lookup_scalar(int index);
-int lookup_vector(float *v, int index, int step);
+int lookup_vector(float *v, int offset, int index, int step, int period);
 
 #endif

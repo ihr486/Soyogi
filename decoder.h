@@ -30,7 +30,7 @@ uint32_t read_unsigned_long(void);
 uint64_t read_unsigned_long_long(void);
 
 bool reached_EOF(void);
-extern bool EOP_flag;
+extern volatile bool EOP_flag;
 
 uint32_t read_unsigned_value(int n);
 int32_t read_signed_value(int n);

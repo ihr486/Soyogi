@@ -12,7 +12,7 @@ static uint8_t segment_size[255];
 static uint64_t buffer = 0;
 static int bit_position = 0, byte_position = 0;
 static int segment_position = 0;
-bool EOP_flag = 0;
+volatile bool EOP_flag = 0;
 
 static int packet_size_count = 0;
 static int total_bytes_read = 0;
