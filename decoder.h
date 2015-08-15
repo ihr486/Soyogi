@@ -19,6 +19,7 @@
 #include "residue.h"
 #include "vector.h"
 #include "codebook.h"
+#include "vorbis_table.h"
 
 #define SECTOR_SIZE (512)
 
@@ -39,8 +40,6 @@ float read_float32(void);
 int decode_packet(void);
 
 void FDCT_IV(float *X, int n);
-
-extern const float floor1_inverse_dB_table[256];
 
 extern uint8_t audio_channels;
 extern uint16_t blocksize[2];
