@@ -17,3 +17,15 @@ Soyogi performs DCT-IV on the frequency-domain audio,
 and saves the N-sized output until "Overlap-Add" process.
 TDAC is executed at the same time as two vectors are overlapped,
 which could be regarded as additional butterfly.
+
+## Fully static in terms of memory use
+All of the setup components will be allocated on a dedicated stack,
+which could be of any configurable capacity up to 64KiB.
+48KiB would be enough to decode an Ogg/Vorbis file with blocksizes N and 4096.
+
+## Development status
+As of August 2015, the implementation is almost complete, if not fully.
+Several Vorbis files were successfully decoded to PCM samples,
+but conspicuous noise (maybe due to bug around overlapping) is still to be addressed.
+Software SRC(Sampling rate converter, from 44.1kHz to 48kHz) also needs to be written,
+because the target MCU is not capable of.
