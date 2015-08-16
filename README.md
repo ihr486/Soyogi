@@ -35,11 +35,11 @@ Errors are accumulated and detected once at the end of packet.
 
 ## Limitations
 * The maximum number of (sparse) codebook entries is 32767.
-** Practical bound is at around 7000.
+  ** Practical bound is at around 7000.
 * The maximum number of codebooks is 255.
-** Practical bound is at 50.
+  ** Practical bound is at 50.
 * The maximum size of setup stack is 65536 bytes.
-** Practical bound for blocksizes N/4096 is at 49152.
+  ** Practical bound for blocksizes N/4096 is at 49152.
 * Blocksizes N/8192 is not supported.
 * Floor 0 is not supported.
 * Submaps are not supported.
