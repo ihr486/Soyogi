@@ -57,7 +57,7 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    printf("Playing %s.\n", argv[1]);
+    INFO("Playing %s.\n", argv[1]);
 
     int error;
     pulse_ctx = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "Vorbis playback", &ss, NULL, NULL, &error);

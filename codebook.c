@@ -229,7 +229,7 @@ static void decode_codebook(int index)
     }
 }
 
-int16_t lookup_scalar(int index)
+int16_t __attribute__((hot)) lookup_scalar(int index)
 {
     codebook_t *cb = &codebook_list[index];
 
@@ -261,7 +261,7 @@ int16_t lookup_scalar(int index)
     return EOP_flag ? -1 : ret;
 }
 
-int lookup_vector(float *v, int offset, int index, int step, int period)
+int __attribute__((hot)) lookup_vector(float *v, int offset, int index, int step, int period)
 {
     codebook_t *cb = &codebook_list[index];
     VQ_header_t *vq = setup_ref(cb->lookup);

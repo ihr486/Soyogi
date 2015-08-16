@@ -11,22 +11,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <setjmp.h>
+#include <time.h>
 
 #include <pulse/pulseaudio.h>
 #include <pulse/simple.h>
-
-#include "misc.h"
-#include "vorbis_helper.h"
-#include "setup.h"
-#include "mode.h"
-#include "mapping.h"
-#include "floor1.h"
-#include "residue.h"
-#include "vector.h"
-#include "codebook.h"
-#include "vorbis_table.h"
-
-#define SECTOR_SIZE (512)
 
 void decode(void);
 
@@ -36,9 +24,6 @@ uint32_t read_unsigned_long(void);
 uint64_t read_unsigned_long_long(void);
 
 extern bool EOF_flag, EOP_flag;
-
-uint32_t read_unsigned_value(int n);
-float read_float32(void);
 
 int decode_packet(void);
 
@@ -50,5 +35,19 @@ extern uint32_t audio_sample_rate;
 extern uint32_t bitrate_nominal;
 
 extern pa_simple *pulse_ctx;
+
+#include "misc.h"
+#include "vorbis_helper.h"
+#include "setup.h"
+#include "mode.h"
+#include "mapping.h"
+#include "floor1.h"
+#include "residue.h"
+#include "vector.h"
+#include "codebook.h"
+#include "vorbis_table.h"
+#include "ogg.h"
+
+#define SECTOR_SIZE (2048)
 
 #endif

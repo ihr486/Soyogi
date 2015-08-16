@@ -74,10 +74,7 @@ void decode_residue(int V_N_bits, int index, int offset, int vectors)
 
     float *v = setup_ref(vector_list[offset].body);
 
-    //memset(v, 0, sizeof(float) * V_N * vectors);
-    for(int i = 0; i < V_N * vectors; i++) {
-        v[i] = 0.0f;
-    }
+    memset(v, 0, sizeof(float) * V_N * vectors);
 
     if(residue->type == 2) {
         actual_size *= vectors;

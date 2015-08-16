@@ -8,7 +8,7 @@ OBJS := $(COBJS)
 BIN := decoder
 
 CC := gcc
-CFLAGS := -Wall -Wextra -std=c99 -O2 -DDEBUG $(shell pkg-config --cflags libpulse libpulse-simple)
+CFLAGS := -Wall -Wextra -std=c99 -O2 $(shell pkg-config --cflags libpulse libpulse-simple)
 LDFLAGS := -lm $(shell pkg-config --libs libpulse libpulse-simple)
 
 .PHONY: all check clean

@@ -37,7 +37,7 @@ static int decode_identification_header(void)
     if(!read_unsigned_value(1))
         ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
 
-    printf("%d ch, %d SPS, %d bps nominal, %d/%d SPB\n", audio_channels, audio_sample_rate, bitrate_nominal, B_N[0], B_N[1]);
+    INFO("%d ch, %d SPS, %d bps nominal, %d/%d SPB\n", audio_channels, audio_sample_rate, bitrate_nominal, B_N[0], B_N[1]);
 
     return 0;
 }
@@ -69,7 +69,7 @@ static int decode_comment_header(void)
 
     decode_comment(comment);
 
-    printf("VENDOR=%s\n", comment);
+    //printf("VENDOR=%s\n", comment);
 
     uint32_t num_comments = read_unsigned_value(32);
 
@@ -106,13 +106,19 @@ static int decode_setup_header(void)
 
     setup_vectors();
 
-    printf("%d bytes of setup stack consumed.\n", setup_get_head());
+    INFO("%d bytes of setup stack consumed.\n", setup_get_head());
 
     return 0;
 }
 
+#define MS_ELAPSED(t) ((double)(clock() - t) / (double)CLOCKS_PER_SEC * 1000.0)
+
 void decode_audio_packet(void)
 {
+    double FDCT_time = 0, residue_time = 0;
+
+    clock_t initial_clock = clock();
+
     int mode_number = read_unsigned_value(ilog(mode_num - 1));
 
     vorbis_mode_t *mode = &mode_list[mode_number];
@@ -161,7 +167,11 @@ void decode_audio_packet(void)
             vector_list[i].do_not_decode_flag = vector_list[i].no_residue;
         }
 
+        clock_t residue_entry = clock();
+
         decode_residue(V_N_bits, residue_number, 0, audio_channels);
+
+        residue_time += MS_ELAPSED(residue_entry);
     } else {
         ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
     }
@@ -177,7 +187,11 @@ void decode_audio_packet(void)
             synthesize_floor1(V_N, i);
         }
 
+        clock_t FDCT_entry = clock();
+
         FDCT_IV(v, V_N_bits);
+
+        FDCT_time += MS_ELAPSED(FDCT_entry);
 
         for(int j = 0; j < V_N; j++) {
             v[j] *= 3000.f;
@@ -193,8 +207,7 @@ void decode_audio_packet(void)
             audio[i + V_N / 2] = (int16_t)rh[i];
             audio[i] = (int16_t)v_out[i + V_N / 2];
         }
-        int error;
-        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * V_N, &error);
+        //pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * V_N, NULL);
     } else {
         if(!previous_window_flag) {
             for(int i = 0; i < B_N[0] / 4; i++) {
@@ -217,14 +230,22 @@ void decode_audio_packet(void)
                 audio[B_N[1] / 4 + i] = (int16_t)rh[i];
             }
         }
-        int error;
-        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, &error);
+        //pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, NULL);
     }
 
     for(int i = 0; i < audio_channels; i++) {
         cache_righthand(V_N, i, next_window_flag);
     }
     setup_set_head(setup_origin);
+
+    double packet_time = MS_ELAPSED(initial_clock);
+    /*printf("Size %d decoded in %lf[ms].\n", V_N * 2, (double)(final_clock - initial_clock) / (double)CLOCKS_PER_SEC * 1000.0);
+    printf("\tFloor1 decode took %lf[ms].\n", floor1_decode_time);
+    printf("\tResidue decode took %lf[ms].\n", residue_time);
+    printf("\tFloor1 synthesis took %lf[ms].\n", floor1_synthesis_time);
+    printf("\tFDCT took %lf[ms].\n", FDCT_time);*/
+    //printf("%lf %lf %lf %lf %lf\n", packet_time, floor1_decode_time, residue_time, floor1_synthesis_time, FDCT_time);
+    //printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 }
 
 int decode_packet(void)

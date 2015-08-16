@@ -10,8 +10,8 @@
 #define WARNING(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define ERROR(code, ...) error_silent(code)
-#define INFO(...)
-#define WARNING(...)
+#define INFO(...) {}
+#define WARNING(...) {}
 #endif
 
 void __attribute__((noreturn)) error_verbose(int code, const char *fmt, ...);

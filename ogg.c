@@ -6,20 +6,18 @@ static uint64_t absolute_granule_position;
 static uint32_t stream_serial_number;
 static uint32_t page_sequence_number;
 static uint32_t page_checksum;
-static uint8_t page_segments = 0;
-static uint8_t segment_size[255];
+uint8_t page_segments = 0;
+uint8_t segment_size[255];
 
-static uint64_t buffer = 0;
-static int bit_position = 0, byte_position = 0;
-static int segment_position = 0;
+uint64_t buffer = 0;
+int bit_position = 0, byte_position = 0;
+int segment_position = 0;
 bool EOP_flag = 0;
 
-static int packet_size_count = 0;
-static int total_bytes_read = 0;
+int packet_size_count = 0;
+int total_bytes_read = 0;
 
-#define MASK32(n) (((uint64_t)1 << (n)) - 1)
-
-static void fetch_page(void)
+void fetch_page(void)
 {
     if(read_unsigned_byte() != 'O' ||
        read_unsigned_byte() != 'g' ||
@@ -54,57 +52,6 @@ static void fetch_page(void)
 
     segment_position = 0;
     byte_position = 0;
-}
-
-static uint8_t fetch_byte_from_packet(void)
-{
-    if(byte_position >= segment_size[segment_position]) {
-        if(segment_size[segment_position] < 255) {
-            EOP_flag = true;
-            return 0;
-        } else {
-            if(++segment_position >= page_segments) {
-                fetch_page();
-            } else {
-                byte_position = 0;
-            }
-        }
-    }
-    byte_position++;
-    packet_size_count++;
-    total_bytes_read++;
-
-    return read_unsigned_byte();
-}
-
-uint32_t read_unsigned_value(int n)
-{
-    uint64_t ret = buffer & MASK32(bit_position);
-
-    int pos = bit_position;
-
-    while(pos < n) {
-        uint8_t b = fetch_byte_from_packet();
-
-        ret |= ((uint64_t)b << pos);
-
-        pos += 8;
-    }
-
-    buffer = ret >> n;
-    bit_position = pos - n;
-
-    return ret & MASK32(n);
-}
-
-float read_float32(void)
-{
-    float mantissa = read_unsigned_value(21);
-    int exponent = read_unsigned_value(10) - 788;
-    if(read_unsigned_value(1)) {
-        return -ldexpf(mantissa, exponent);
-    }
-    return ldexpf(mantissa, exponent);
 }
 
 static void close_packet(void)
