@@ -81,8 +81,4 @@ void FDCT_IV(float *X, int n)
     }
 
     FDCT_R_IV(X, n);
-
-    for(int i = 0; i < n; i++) {
-        //X[i] *= n;
-    }
 }

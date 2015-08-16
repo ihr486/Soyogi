@@ -63,11 +63,13 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    output = popen("sox -t raw -b 16 -e s -r 44100 - -t wav -b 16 -e s -r 44100 output.wav", "w");
+    printf("Playing %s.\n", argv[1]);
+
+    /*output = popen("sox -t raw -b 16 -e s -r 44100 - -t wav -b 16 -e s -r 44100 output.wav", "w");
     if(!output) {
         fprintf(stderr, "Failed to connect to sox.\n");
         return 1;
-    }
+    }*/
 
     int error;
     pulse_ctx = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "Vorbis playback", &ss, NULL, NULL, &error);
@@ -86,7 +88,7 @@ int main(int argc, const char *argv[])
     }
 
     pa_simple_free(pulse_ctx);
-    pclose(output);
+    //pclose(output);
     fclose(fp);
 
     return 0;

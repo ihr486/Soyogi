@@ -30,7 +30,7 @@ static int decode_identification_header(void)
     if(!read_unsigned_value(1))
         ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
 
-    printf("%d ch, %d SPS, %d bps, %d/%d SPB\n", audio_channels, audio_sample_rate, bitrate_nominal, blocksize[0], blocksize[1]);
+    printf("%d ch, %d SPS, %d bps nominal, %d/%d SPB\n", audio_channels, audio_sample_rate, bitrate_nominal, blocksize[0], blocksize[1]);
 
     return 0;
 }
@@ -153,8 +153,6 @@ void decode_audio_packet(void)
             vector_list[i].do_not_decode_flag = vector_list[i].no_residue;
         }
 
-        //INFO("Decoding %d residue vectors according to submap %d...\n", audio_channels, 0);
-
         decode_residue(n, residue_number, 0, audio_channels);
     } else {
         ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
@@ -174,7 +172,7 @@ void decode_audio_packet(void)
         FDCT_IV(v, n / 2);
 
         for(int j = 0; j < n / 2; j++) {
-            v[j] *= 300000.f;
+            v[j] *= 3000.f;
         }
 
         overlap_add(n / 2, i, previous_window_flag);
@@ -189,7 +187,7 @@ void decode_audio_packet(void)
             audio[i] = (int16_t)rh[i];
             audio[i + n / 4] = (int16_t)v_out[i + n / 4];
         }
-        fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
+        //fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
         int error;
         pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * n / 2, &error);
     } else {
@@ -208,7 +206,7 @@ void decode_audio_packet(void)
                 audio[blocksize[1] / 4 + i] = (int16_t)v_out[i + blocksize[0] / 4];
             }
         }
-        fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
+        //fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
         int error;
         pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, &error);
     }

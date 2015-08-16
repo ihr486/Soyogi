@@ -20,8 +20,6 @@ void setup_modes(void)
             ERROR(ERROR_MODE, "Unsupported transform type: %d.\n", transformtype);
 
         mode_list[i].mapping = read_unsigned_value(8);
-
-        INFO("Mode #%d: Block %d, mapping %d.\n", i, mode_list[i].blockflag, mode_list[i].mapping);
     }
 
     if(!read_unsigned_value(1))

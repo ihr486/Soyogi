@@ -139,7 +139,7 @@ static void close_packet(void)
         }
     }
     if(remainder)
-        INFO("%d/%d bytes read\n", packet_size_count - remainder, packet_size_count);
+        WARNING("Last %d bytes skipped during packet decode.\n", remainder);
     //printf("Packet size = %d.\n", packet_size_count);
 }
 
