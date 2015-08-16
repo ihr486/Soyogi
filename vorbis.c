@@ -5,6 +5,8 @@ uint32_t audio_sample_rate = 0;
 uint32_t bitrate_nominal = 0;
 uint16_t B_N_bits[2] = {0, 0}, B_N[2] = {0, 0};
 
+int16_t *audio = NULL;
+
 static int decode_identification_header(void)
 {
     uint32_t vorbis_version = read_unsigned_value(32);
@@ -29,6 +31,8 @@ static int decode_identification_header(void)
         fprintf(stderr, "Unsupported greater blocksizes: %u/%u.\n", B_N[0], B_N[1]);
         return 1;
     }
+
+    audio = (int16_t *)malloc(sizeof(int16_t) * (B_N[1] + B_N[0]) / 4);
 
     if(!read_unsigned_value(1))
         ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
@@ -182,8 +186,6 @@ void decode_audio_packet(void)
         overlap_add(V_N_bits, i, previous_window_flag);
     }
 
-    int16_t *audio = (int16_t *)malloc(sizeof(int16_t) * B_N[1] / 2);
-
     float *v_out = setup_ref(vector_list[0].body);
     float *rh = setup_ref(vector_list[0].right_hand);
     if(previous_window_flag && vector_list[0].next_window_flag) {
@@ -191,7 +193,6 @@ void decode_audio_packet(void)
             audio[i] = (int16_t)rh[i];
             audio[i + V_N / 2] = (int16_t)v_out[i + V_N / 2];
         }
-        //fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
         int error;
         pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * V_N, &error);
     } else {
@@ -199,23 +200,26 @@ void decode_audio_packet(void)
             for(int i = 0; i < B_N[0] / 4; i++) {
                 audio[i] = (int16_t)rh[i];
             }
-            for(int i = 0; i < B_N[1] / 4; i++) {
-                audio[B_N[0] / 4 + i] = (int16_t)v_out[i + B_N[1] / 4];
+            for(int i = 0; i < B_N[0] / 4; i++) {
+                audio[B_N[0] / 4 + i] = (int16_t)v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 + i];
+            }
+            for(int i = 0; i < (B_N[1] - B_N[0]) / 4; i++) {
+                audio[B_N[0] / 2 + i] = (int16_t)(-v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 - 1 - i]);
             }
         } else if(!vector_list[0].next_window_flag) {
-            for(int i = 0; i < B_N[1] / 4; i++) {
-                audio[i] = (int16_t)rh[i];
+            for(int i = 0; i < (B_N[1] - B_N[0]) / 4; i++) {
+                audio[i] = (int16_t)(-rh[B_N[1] / 4 - 1 - i]);
+            }
+            for(int i = 0; i < B_N[0] / 4; i++) {
+                audio[(B_N[1] - B_N[0]) / 4 + i] = (int16_t)rh[i];
             }
             for(int i = 0; i < B_N[0] / 4; i++) {
                 audio[B_N[1] / 4 + i] = (int16_t)v_out[i + B_N[0] / 4];
             }
         }
-        //fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
         int error;
         pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, &error);
     }
-
-    free(audio);
 
     for(int i = 0; i < audio_channels; i++) {
         cache_righthand(V_N, i, next_window_flag);

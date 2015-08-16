@@ -97,9 +97,9 @@ void overlap_add(int V_N_bits, int channel, int previous_window_flag)
         apply_window(rh, v + V_N / 2, V_N_bits);
     } else {
         if(!previous_window_flag) {
-            apply_window(rh, v + V_N / 2, B_N_bits[0] - 1);
+            apply_window(rh, v + V_N / 2 + (B_N[1] - B_N[0]) / 4, B_N_bits[0] - 1);
         } else if(!vector->next_window_flag) {
-            apply_window(rh + ((B_N[1] - B_N[0]) / 4), v + V_N / 2, V_N_bits);
+            apply_window(rh, v + V_N / 2, V_N_bits);
         } else {
             ERROR(ERROR_VORBIS, "Illegal overlapping condition.\n");
         }
