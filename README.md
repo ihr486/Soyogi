@@ -47,6 +47,6 @@ Errors are accumulated and detected once at the end of packet.
 ## Development status
 As of August 2015, the implementation is almost complete, if not fully.
 Several Vorbis files were successfully decoded to clear PCM samples.
-Software SRC(Sampling rate converter, from 44.1kHz to 48kHz) also needs to be written,
+Software SRC(Sampling rate converter, from 44.1kHz to 48kHz) still needs to be written,
 because the target MCU is not capable of.
 There is currently no plan to support Floor 0 and Submaps.

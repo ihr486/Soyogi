@@ -76,12 +76,6 @@ void apply_window(float *A, float *B, int V_N_bits)
         A[V_N / 2 - 1 - i] = alpha;
         B[i] = beta;
     }
-
-    for(int i = 0; i < V_N / 2; i++) {
-        float t = A[i];
-        A[i] = B[i];
-        B[i] = t;
-    }
 }
 
 void overlap_add(int V_N_bits, int channel, int previous_window_flag)

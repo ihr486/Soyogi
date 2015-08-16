@@ -32,7 +32,7 @@ static int decode_identification_header(void)
         return 1;
     }
 
-    audio = (int16_t *)malloc(sizeof(int16_t) * (B_N[1] + B_N[0]) / 4);
+    audio = (int16_t *)malloc(sizeof(int16_t) * B_N[1] / 2);
 
     if(!read_unsigned_value(1))
         ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
@@ -190,18 +190,18 @@ void decode_audio_packet(void)
     float *rh = setup_ref(vector_list[0].right_hand);
     if(previous_window_flag && vector_list[0].next_window_flag) {
         for(int i = 0; i < V_N / 2; i++) {
-            audio[i] = (int16_t)rh[i];
-            audio[i + V_N / 2] = (int16_t)v_out[i + V_N / 2];
+            audio[i + V_N / 2] = (int16_t)rh[i];
+            audio[i] = (int16_t)v_out[i + V_N / 2];
         }
         int error;
         pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * V_N, &error);
     } else {
         if(!previous_window_flag) {
             for(int i = 0; i < B_N[0] / 4; i++) {
-                audio[i] = (int16_t)rh[i];
+                audio[i] = (int16_t)v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 + i];
             }
             for(int i = 0; i < B_N[0] / 4; i++) {
-                audio[B_N[0] / 4 + i] = (int16_t)v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 + i];
+                audio[B_N[0] / 4 + i] = (int16_t)rh[i];
             }
             for(int i = 0; i < (B_N[1] - B_N[0]) / 4; i++) {
                 audio[B_N[0] / 2 + i] = (int16_t)(-v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 - 1 - i]);
@@ -211,10 +211,10 @@ void decode_audio_packet(void)
                 audio[i] = (int16_t)(-rh[B_N[1] / 4 - 1 - i]);
             }
             for(int i = 0; i < B_N[0] / 4; i++) {
-                audio[(B_N[1] - B_N[0]) / 4 + i] = (int16_t)rh[i];
+                audio[(B_N[1] - B_N[0]) / 4 + i] = (int16_t)v_out[i + B_N[0] / 4];
             }
             for(int i = 0; i < B_N[0] / 4; i++) {
-                audio[B_N[1] / 4 + i] = (int16_t)v_out[i + B_N[0] / 4];
+                audio[B_N[1] / 4 + i] = (int16_t)rh[i];
             }
         }
         int error;

@@ -97,18 +97,6 @@ uint32_t read_unsigned_value(int n)
     return ret & MASK32(n);
 }
 
-void push_bits(uint32_t val, int n)
-{
-    buffer = (buffer << n) | val;
-}
-
-int32_t read_signed_value(int n)
-{
-    uint32_t ret = read_unsigned_value(n);
-
-    return (int32_t)(ret << (32 - n)) >> (32 - n);
-}
-
 float read_float32(void)
 {
     float mantissa = read_unsigned_value(21);

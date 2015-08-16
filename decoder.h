@@ -38,7 +38,6 @@ uint64_t read_unsigned_long_long(void);
 extern bool EOF_flag, EOP_flag;
 
 uint32_t read_unsigned_value(int n);
-int32_t read_signed_value(int n);
 float read_float32(void);
 
 int decode_packet(void);
