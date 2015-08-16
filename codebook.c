@@ -276,7 +276,7 @@ int lookup_vector(float *v, int offset, int index, int step, int period)
         int index_divisor = 1;
         for(int i = 0; i < cb->dimension; i++) {
             int multiplicand_offset = (lookup_offset / index_divisor) % vq->lookup_values;
-            float element;
+            float element = 0.0f;
 
             switch(vq->lookup_mode) {
             case 8:
@@ -285,8 +285,6 @@ int lookup_vector(float *v, int offset, int index, int step, int period)
             case 16:
                 element = setup_get_short(vq->table + multiplicand_offset * 2) * vq->delta_value + vq->minimum_value + last;
                 break;
-            default:
-                ERROR(ERROR_VQ, "Unknown lookup mode: %d.\n", vq->lookup_mode);
             }
 
             if(vq->sequence_p) {
@@ -301,7 +299,7 @@ int lookup_vector(float *v, int offset, int index, int step, int period)
         float last = 0;
         int multiplicand_offset = lookup_offset * cb->dimension;
         for(int i = 0; i < cb->dimension; i++) {
-            float element;
+            float element = 0.0f;
 
             switch(vq->lookup_mode) {
             case 8:
@@ -310,8 +308,6 @@ int lookup_vector(float *v, int offset, int index, int step, int period)
             case 16:
                 element = setup_get_short(vq->table + multiplicand_offset * 2) * vq->delta_value + vq->minimum_value + last;
                 break;
-            default:
-                ERROR(ERROR_VQ, "Unknown lookup mode: %d.\n", vq->lookup_mode);
             }
 
             if(vq->sequence_p) {
@@ -322,8 +318,6 @@ int lookup_vector(float *v, int offset, int index, int step, int period)
             multiplicand_offset++;
         }
     } break;
-    default:
-        ERROR(ERROR_VQ, "VQ lookup requested for a scalar codebook.\n");
     }
     return cb->dimension;
 }

@@ -59,41 +59,29 @@ void setup_residues(void)
     }
 }
 
-void decode_residue(int n, int index, int offset, int channel)
+void decode_residue(int V_N_bits, int index, int offset, int vectors)
 {
     residue_header_t *residue = &residue_list[index];
 
-    int actual_size = n / 2;
-    int vector_unit = 0, vector_div = 0;
+    int V_N = 1 << V_N_bits;
+    int actual_size = V_N, actual_vectors = vectors;
+
+    vector_list[offset].body = setup_allocate_natural(sizeof(float) * V_N * vectors);
+
+    for(int i = 0; i < vectors; i++) {
+        vector_list[offset + i].body = vector_list[offset].body + sizeof(float) * V_N * i;
+    }
+
+    float *v = setup_ref(vector_list[offset].body);
+
+    //memset(v, 0, sizeof(float) * V_N * vectors);
+    for(int i = 0; i < V_N * vectors; i++) {
+        v[i] = 0.0f;
+    }
 
     if(residue->type == 2) {
-        vector_list[offset].body = setup_allocate_natural(sizeof(float) * actual_size * channel);
-
-        for(int i = 0; i < channel; i++) {
-            vector_list[offset + i].body = vector_list[offset].body + sizeof(float) * actual_size * i;
-
-            float *v = setup_ref(vector_list[offset + i].body);
-
-            for(int j = 0; j < actual_size; j++) {
-                v[j] = 0.0f;
-            }
-        }
-
-        vector_unit = actual_size;
-        vector_div = channel;
-        
-        actual_size *= channel;
-        channel = 1;
-    } else {
-        for(int i = 0; i < channel; i++) {
-            vector_list[offset + i].body = setup_allocate_natural(sizeof(float) * actual_size);
-
-            float *v = setup_ref(vector_list[offset + i].body);
-
-            for(int j = 0; j < actual_size; j++) {
-                v[j] = 0.0f;
-            }
-        }
+        actual_size *= vectors;
+        actual_vectors = 1;
     }
 
     int limit_residue_begin = min(residue->begin, actual_size);
@@ -103,7 +91,7 @@ void decode_residue(int n, int index, int offset, int channel)
     int n_to_read = limit_residue_end - limit_residue_begin;
     int partitions_to_read = n_to_read / residue->partition_size;
 
-    uint8_t *classifications = setup_ref(setup_allocate_packed(channel * partitions_to_read));
+    uint8_t *classifications = setup_ref(setup_allocate_packed(actual_vectors * partitions_to_read));
 
     if(n_to_read) {
         for(int pass = 0; pass < 8; pass++) {
@@ -111,7 +99,7 @@ void decode_residue(int n, int index, int offset, int channel)
 
             while(partition_count < partitions_to_read) {
                 if(pass == 0) {
-                    for(int j = 0; j < channel; j++) {
+                    for(int j = 0; j < actual_vectors; j++) {
                         if(!vector_list[offset + j].do_not_decode_flag) {
                             int temp = lookup_scalar(residue->classbook);
 
@@ -126,7 +114,7 @@ void decode_residue(int n, int index, int offset, int channel)
                     }
                 }
                 for(int i = 0; i < classwords_per_codeword && partition_count < partitions_to_read; i++) {
-                    for(int j = 0; j < channel; j++) {
+                    for(int j = 0; j < actual_vectors; j++) {
                         if(!vector_list[offset + j].do_not_decode_flag) {
                             int vqclass = classifications[j * partitions_to_read + partition_count];
 
@@ -134,31 +122,28 @@ void decode_residue(int n, int index, int offset, int channel)
                             int vqbook = class_list[vqclass].books[pass];
 
                             if(vqbook != 255) {
-                                int step = 0, period = 0, origin = 0, base = 0;
+                                int step = 0, period = 0, origin = 0;
 
                                 switch(residue->type) {
                                 case 0:
                                     step = residue->partition_size / codebook_list[vqbook].dimension;
                                     period = codebook_list[vqbook].dimension;
                                     origin = residue->partition_size * partition_count + limit_residue_begin;
-                                    base = 0;
+                                    for(int k = 0; k < step; k++) {
+                                        if(!lookup_vector((float *)setup_ref(vector_list[offset + j].body) + (origin + k), 0, vqbook, step, period)) return;
+                                    }
                                     break;
                                 case 1:
-                                    step = 1;
-                                    period = 1;
-                                    origin = residue->partition_size * partition_count + limit_residue_begin;
-                                    base = 0;
+                                    for(int k = 0; k < residue->partition_size; k += codebook_list[vqbook].dimension) {
+                                        if(!lookup_vector((float *)setup_ref(vector_list[offset + j].body) + k, 0, vqbook, 1, 1)) return;
+                                    }
                                     break;
                                 case 2:
-                                    step = vector_unit;
-                                    period = vector_div;
-                                    origin = 0;
-                                    base = residue->partition_size * partition_count + limit_residue_begin;
+                                    origin = residue->partition_size * partition_count + limit_residue_begin;
+                                    for(int k = 0; k < residue->partition_size; k += codebook_list[vqbook].dimension) {
+                                        if(!lookup_vector((float *)setup_ref(vector_list[offset + j].body), origin + k, vqbook, V_N, vectors)) return;
+                                    }
                                     break;
-                                }
-
-                                for(int k = 0; k < residue->partition_size; k += codebook_list[vqbook].dimension) {
-                                    if(!lookup_vector((float *)setup_ref(vector_list[offset + j].body) + origin, k + base, vqbook, step, period)) return;
                                 }
                             }
                         } else {

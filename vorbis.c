@@ -3,7 +3,7 @@
 uint8_t audio_channels = 0;
 uint32_t audio_sample_rate = 0;
 uint32_t bitrate_nominal = 0;
-uint16_t blocksize[2] = {0, 0};
+uint16_t B_N_bits[2] = {0, 0}, B_N[2] = {0, 0};
 
 static int decode_identification_header(void)
 {
@@ -19,23 +19,26 @@ static int decode_identification_header(void)
     read_unsigned_value(32);
     bitrate_nominal = read_unsigned_value(32);
     read_unsigned_value(32);
-    blocksize[0] = 1 << read_unsigned_value(4);
-    blocksize[1] = 1 << read_unsigned_value(4);
+    B_N_bits[0] = read_unsigned_value(4);
+    B_N_bits[1] = read_unsigned_value(4);
 
-    if(blocksize[1] > 4096) {
-        fprintf(stderr, "Unsupported greater blocksize: %u.\n", blocksize[1]);
+    B_N[0] = 1 << B_N_bits[0];
+    B_N[1] = 1 << B_N_bits[1];
+
+    if(B_N[1] > 4096) {
+        fprintf(stderr, "Unsupported greater blocksizes: %u/%u.\n", B_N[0], B_N[1]);
         return 1;
     }
 
     if(!read_unsigned_value(1))
         ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
 
-    printf("%d ch, %d SPS, %d bps nominal, %d/%d SPB\n", audio_channels, audio_sample_rate, bitrate_nominal, blocksize[0], blocksize[1]);
+    printf("%d ch, %d SPS, %d bps nominal, %d/%d SPB\n", audio_channels, audio_sample_rate, bitrate_nominal, B_N[0], B_N[1]);
 
     return 0;
 }
 
-#define MAX_COMMENT_LENGTH 16384
+#define MAX_COMMENT_LENGTH 32768
 
 static int decode_comment(char *buf)
 {
@@ -110,7 +113,8 @@ void decode_audio_packet(void)
 
     vorbis_mode_t *mode = &mode_list[mode_number];
 
-    int n = blocksize[mode->blockflag];
+    int V_N_bits = B_N_bits[mode->blockflag] - 1;
+    int V_N = 1 << V_N_bits;
 
     int previous_window_flag = 1, next_window_flag = 1;
 
@@ -153,68 +157,68 @@ void decode_audio_packet(void)
             vector_list[i].do_not_decode_flag = vector_list[i].no_residue;
         }
 
-        decode_residue(n, residue_number, 0, audio_channels);
+        decode_residue(V_N_bits, residue_number, 0, audio_channels);
     } else {
         ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
     }
 
     for(int i = 0; i < mapping->coupling_steps; i++) {
-        decouple_square_polar(n / 2, step_list[i].magnitude, step_list[i].angle);
+        decouple_square_polar(V_N, step_list[i].magnitude, step_list[i].angle);
     }
 
     for(int i = 0; i < audio_channels; i++) {
         float *v = setup_ref(vector_list[i].body);
 
         if(vector_list[i].nonzero) {
-            synthesize_floor1(n / 2, i);
+            synthesize_floor1(V_N, i);
         }
 
-        FDCT_IV(v, n / 2);
+        FDCT_IV(v, V_N_bits);
 
-        for(int j = 0; j < n / 2; j++) {
+        for(int j = 0; j < V_N; j++) {
             v[j] *= 3000.f;
         }
 
-        overlap_add(n / 2, i, previous_window_flag);
+        overlap_add(V_N_bits, i, previous_window_flag);
     }
 
-    int16_t *audio = (int16_t *)malloc(sizeof(int16_t) * blocksize[1] / 2);
+    int16_t *audio = (int16_t *)malloc(sizeof(int16_t) * B_N[1] / 2);
 
     float *v_out = setup_ref(vector_list[0].body);
     float *rh = setup_ref(vector_list[0].right_hand);
     if(previous_window_flag && vector_list[0].next_window_flag) {
-        for(int i = 0; i < n / 4; i++) {
+        for(int i = 0; i < V_N / 2; i++) {
             audio[i] = (int16_t)rh[i];
-            audio[i + n / 4] = (int16_t)v_out[i + n / 4];
+            audio[i + V_N / 2] = (int16_t)v_out[i + V_N / 2];
         }
         //fwrite(audio, sizeof(int16_t) * n / 2, 1, output);
         int error;
-        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * n / 2, &error);
+        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * V_N, &error);
     } else {
         if(!previous_window_flag) {
-            for(int i = 0; i < blocksize[0] / 4; i++) {
+            for(int i = 0; i < B_N[0] / 4; i++) {
                 audio[i] = (int16_t)rh[i];
             }
-            for(int i = 0; i < blocksize[1] / 4; i++) {
-                audio[blocksize[0] / 4 + i] = (int16_t)v_out[i + blocksize[1] / 4];
+            for(int i = 0; i < B_N[1] / 4; i++) {
+                audio[B_N[0] / 4 + i] = (int16_t)v_out[i + B_N[1] / 4];
             }
         } else if(!vector_list[0].next_window_flag) {
-            for(int i = 0; i < blocksize[1] / 4; i++) {
+            for(int i = 0; i < B_N[1] / 4; i++) {
                 audio[i] = (int16_t)rh[i];
             }
-            for(int i = 0; i < blocksize[0] / 4; i++) {
-                audio[blocksize[1] / 4 + i] = (int16_t)v_out[i + blocksize[0] / 4];
+            for(int i = 0; i < B_N[0] / 4; i++) {
+                audio[B_N[1] / 4 + i] = (int16_t)v_out[i + B_N[0] / 4];
             }
         }
         //fwrite(audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, 1, output);
         int error;
-        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (blocksize[0] + blocksize[1]) / 4, &error);
+        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, &error);
     }
 
     free(audio);
 
     for(int i = 0; i < audio_channels; i++) {
-        cache_righthand(n / 2, i, next_window_flag);
+        cache_righthand(V_N, i, next_window_flag);
     }
     setup_set_head(setup_origin);
 }

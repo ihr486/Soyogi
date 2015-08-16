@@ -38,6 +38,6 @@ extern floor1_header_t *floor_list;
 
 void setup_floors(void);
 void decode_floor1(int index, int channel);
-void synthesize_floor1(int n, int channel);
+void synthesize_floor1(int V_N, int channel);
 
 #endif

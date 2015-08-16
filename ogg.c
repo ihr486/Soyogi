@@ -12,7 +12,7 @@ static uint8_t segment_size[255];
 static uint64_t buffer = 0;
 static int bit_position = 0, byte_position = 0;
 static int segment_position = 0;
-volatile bool EOP_flag = 0;
+bool EOP_flag = 0;
 
 static int packet_size_count = 0;
 static int total_bytes_read = 0;
@@ -140,14 +140,13 @@ static void close_packet(void)
     }
     if(remainder)
         WARNING("Last %d bytes skipped during packet decode.\n", remainder);
-    //printf("Packet size = %d.\n", packet_size_count);
 }
 
 static int open_packet(void)
 {
     if(++segment_position >= page_segments) {
         fetch_page();
-        if(reached_EOF()) return 1;
+        if(EOF_flag) return 1;
     }
     byte_position = 0;
     bit_position = 0;
@@ -165,5 +164,5 @@ void decode(void)
 
         close_packet();
     }
-    printf("%d bytes read.\n", total_bytes_read);
+    INFO("%d bytes read from the logical stream.\n", total_bytes_read);
 }

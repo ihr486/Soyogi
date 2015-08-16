@@ -18,6 +18,6 @@ extern int residue_num;
 extern residue_header_t *residue_list;
 
 void setup_residues(void);
-void decode_residue(int n, int index, int offset, int channel);
+void decode_residue(int V_N_bits, int index, int offset, int vectors);
 
 #endif

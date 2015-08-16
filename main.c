@@ -6,12 +6,7 @@ pa_simple *pulse_ctx = NULL;
 static FILE *g_source = NULL;
 static uint8_t buf[SECTOR_SIZE];
 static int buf_depth = 0, buf_head = 0;
-static bool EOF_flag = false;
-
-bool reached_EOF(void)
-{
-    return EOF_flag;
-}
+bool EOF_flag = false;
 
 uint8_t read_unsigned_byte(void)
 {

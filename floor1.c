@@ -41,9 +41,6 @@ static void setup_floor1(int index)
         if(partition_list[i].class > maximum_class) maximum_class = partition_list[i].class;
     }
 
-    if(maximum_class < 0)
-        ERROR(ERROR_FLOOR1, "No class information for Floor #%d?\n", index);
-
     f->classes = maximum_class + 1;
     f->class_list = setup_allocate_natural(sizeof(floor1_class_t) * f->classes);
 
@@ -194,7 +191,7 @@ void decode_floor1(int index, int channel)
     }
 }
 
-void synthesize_floor1(int n, int channel)
+void synthesize_floor1(int V_N, int channel)
 {
     vector_t *vector = &vector_list[channel];
     floor1_header_t *floor = &floor_list[vector->floor];
@@ -223,7 +220,7 @@ void synthesize_floor1(int n, int channel)
 
             v[x] *= floor1_inverse_dB_table[y];
 
-            for(x = lx + 1; x < min(hx, n); x++) {
+            for(x = lx + 1; x < min(hx, V_N); x++) {
                 err += ady;
                 if(err >= adx) {
                     err -= adx;
@@ -239,7 +236,7 @@ void synthesize_floor1(int n, int channel)
             ly = hy;
         }
     }
-    for(; hx < n; hx++) {
+    for(; hx < V_N; hx++) {
         v[hx] *= floor1_inverse_dB_table[hy];
     }
 }

@@ -13,9 +13,9 @@ typedef struct vector_tag {
 } vector_t;
 
 void setup_vectors(void);
-void decouple_square_polar(int n, int magnitude, int angle);
-void cache_righthand(int n, int channel, int next_window_flag);
-void overlap_add(int n, int channel, int previous_window_flag);
+void decouple_square_polar(int V_N, int magnitude, int angle);
+void cache_righthand(int V_N, int channel, int next_window_flag);
+void overlap_add(int V_N_bits, int channel, int previous_window_flag);
 
 extern vector_t *vector_list;
 
