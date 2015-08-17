@@ -168,6 +168,7 @@ static void decode_codebook(int index)
         uint8_t sparse_flag = read_unsigned_value(1);
 
         if(sparse_flag) {
+            int active_codeword_count = 0, last_codeword = 0;
             for(int i = 0; i < cb->entries; i++) {
                 uint8_t active_flag = read_unsigned_value(1);
 
@@ -175,13 +176,22 @@ static void decode_codebook(int index)
                     uint8_t length = read_unsigned_value(5) + 1;
 
                     insert_codeword(cb, i, length, level_depth);
+
+                    active_codeword_count++;
+                    last_codeword = i;
                 }
+            }
+            if(active_codeword_count == 1) {
+                insert_codeword(cb, last_codeword, 1, level_depth);
             }
         } else {
             for(int i = 0; i < cb->entries; i++) {
                 uint8_t length = read_unsigned_value(5) + 1;
 
                 insert_codeword(cb, i, length, level_depth);
+            }
+            if(cb->entries == 1) {
+                insert_codeword(cb, 1, 1, level_depth);
             }
         }
     }
