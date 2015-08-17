@@ -1,70 +1,35 @@
 #ifndef OGG_H
 #define OGG_H
 
+#define PREFETCH_BUFFER_SIZE (512)
+
 #define MASK32(n) (((uint64_t)1 << (n)) - 1)
 
-extern uint8_t page_segments;
-extern uint8_t segment_size[255];
-
-extern uint64_t buffer;
-extern int bit_position, byte_position;
-extern int segment_position;
-extern bool EOP_flag;
-
-extern int packet_size_count;
-extern int total_bytes_read;
+extern uint32_t prefetch_buffer[PREFETCH_BUFFER_SIZE];
+extern unsigned int prefetch_depth, prefetch_position;
 
 void fetch_page(void);
+uint32_t read_unsigned_value(int n);
+float read_float32(void);
+void prefetch_packet(int offset);
 
-inline uint8_t fetch_byte_from_packet(void)
+inline uint32_t read_unsigned_value_PF(int n)
 {
-    if(byte_position >= segment_size[segment_position]) {
-        if(segment_size[segment_position] < 255) {
-            EOP_flag = true;
-            return 0;
-        } else {
-            if(++segment_position >= page_segments) {
-                fetch_page();
-            } else {
-                byte_position = 0;
-            }
-        }
-    }
-    byte_position++;
-    packet_size_count++;
-    total_bytes_read++;
-
-    return read_unsigned_byte();
-}
-
-inline uint32_t read_unsigned_value(int n)
-{
-    uint64_t ret = buffer & MASK32(bit_position);
-
-    int pos = bit_position;
-
-    while(pos < n) {
-        uint8_t b = fetch_byte_from_packet();
-
-        ret |= ((uint64_t)b << pos);
-
-        pos += 8;
-    }
-
-    buffer = ret >> n;
-    bit_position = pos - n;
-
+    uint32_t ret = (prefetch_buffer[prefetch_position >> 5] >> (prefetch_position & 31)) | (prefetch_buffer[(prefetch_position >> 5) + 1] << (32 - (prefetch_position & 31)));
+    prefetch_position += n;
     return ret & MASK32(n);
 }
 
-inline float read_float32(void)
+inline uint32_t read_bit_PF(void)
 {
-    float mantissa = read_unsigned_value(21);
-    int exponent = read_unsigned_value(10) - 788;
-    if(read_unsigned_value(1)) {
-        return -ldexpf(mantissa, exponent);
-    }
-    return ldexpf(mantissa, exponent);
+    uint32_t ret = prefetch_buffer[prefetch_position >> 5] >> (prefetch_position & 31);
+    prefetch_position++;
+    return ret & 1;
+}
+
+inline bool prefetch_buffer_exhausted(void)
+{
+    return prefetch_position >= prefetch_depth;
 }
 
 #endif

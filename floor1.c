@@ -94,7 +94,7 @@ void decode_floor1(int index, int channel)
     floor1_header_t *floor = &floor_list[index];
     vector_t *vector = &vector_list[channel];
 
-    vector->nonzero = read_unsigned_value(1);
+    vector->nonzero = read_bit_PF();
     vector->floor = index;
 
     if(vector->nonzero) {
@@ -110,8 +110,8 @@ void decode_floor1(int index, int channel)
             coord_list[i].X = X_list[i];
         }
 
-        src_Y_list[0] = read_unsigned_value(ilog(range - 1));
-        src_Y_list[1] = read_unsigned_value(ilog(range - 1));
+        src_Y_list[0] = read_unsigned_value_PF(ilog(range - 1));
+        src_Y_list[1] = read_unsigned_value_PF(ilog(range - 1));
 
         floor1_partition_t *partition_list = setup_ref(floor->partition_list);
         floor1_class_t *class_list = setup_ref(floor->class_list);

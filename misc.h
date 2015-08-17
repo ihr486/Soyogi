@@ -29,5 +29,6 @@ extern jmp_buf jump_env;
 #define ERROR_MODE 8
 #define ERROR_OGG 9
 #define ERROR_VORBIS 10
+#define DECODE_FINISHED 11
 
 #endif

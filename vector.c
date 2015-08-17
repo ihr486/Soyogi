@@ -12,9 +12,7 @@ void setup_vectors(void)
 
         float *v = setup_ref(vector_list[i].right_hand);
 
-        for(int j = 0; j < B_N[1] / 4; j++) {
-            v[j] = 0.0f;
-        }
+        memset(v, 0, sizeof(float) * B_N[1] / 4);
     }
 }
 

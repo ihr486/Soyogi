@@ -6,16 +6,86 @@ static uint64_t absolute_granule_position;
 static uint32_t stream_serial_number;
 static uint32_t page_sequence_number;
 static uint32_t page_checksum;
-uint8_t page_segments = 0;
-uint8_t segment_size[255];
+static uint8_t page_segments = 0;
+static uint8_t segment_size[255];
 
-uint64_t buffer = 0;
-int bit_position = 0, byte_position = 0;
-int segment_position = 0;
-bool EOP_flag = 0;
+static uint64_t buffer = 0;
+static int bit_position = 0, byte_position = 0;
+static int segment_position = 0;
+static volatile bool EOP_flag = 0;
 
-int packet_size_count = 0;
-int total_bytes_read = 0;
+static int packet_size_count = 0;
+static int total_bytes_read = 0;
+
+uint32_t prefetch_buffer[PREFETCH_BUFFER_SIZE];
+unsigned int prefetch_depth = 0, prefetch_position = 0;
+
+uint8_t fetch_byte_from_packet(void)
+{
+    while(byte_position >= segment_size[segment_position]) {
+        if(segment_size[segment_position] < 255) {
+            EOP_flag = true;
+            return 0;
+        } else {
+            if(++segment_position >= page_segments) {
+                fetch_page();
+            } else {
+                byte_position = 0;
+            }
+        }
+    }
+    byte_position++;
+    packet_size_count++;
+    total_bytes_read++;
+
+    return read_unsigned_byte();
+}
+
+uint32_t read_unsigned_value(int n)
+{
+    uint64_t ret = buffer & MASK32(bit_position);
+
+    int pos = bit_position;
+
+    while(pos < n) {
+        uint8_t b = fetch_byte_from_packet();
+
+        ret |= ((uint64_t)b << pos);
+
+        pos += 8;
+    }
+
+    buffer = ret >> n;
+    bit_position = pos - n;
+
+    return ret & MASK32(n);
+}
+
+float read_float32(void)
+{
+    float mantissa = read_unsigned_value(21);
+    int exponent = read_unsigned_value(10) - 788;
+    if(read_unsigned_value(1)) {
+        return -ldexpf(mantissa, exponent);
+    }
+    return ldexpf(mantissa, exponent);
+}
+
+void prefetch_packet(int offset)
+{
+    uint8_t *dest = (uint8_t *)prefetch_buffer;
+    memset(prefetch_buffer, 0, 4 * PREFETCH_BUFFER_SIZE);
+    dest[0] = buffer << offset;
+    for(prefetch_depth = 1; prefetch_depth < 4 * PREFETCH_BUFFER_SIZE; prefetch_depth++) {
+        dest[prefetch_depth] = fetch_byte_from_packet();
+        if(EOP_flag) {
+            prefetch_depth = prefetch_depth * 8 + 8;
+            prefetch_position = offset;
+            return;
+        }
+    }
+    ERROR(ERROR_OGG, "Prefetch target is too large.\n");
+}
 
 void fetch_page(void)
 {
@@ -73,8 +143,9 @@ static void close_packet(void)
             break;
         }
     }
-    if(remainder)
+    if(remainder) {
         WARNING("Last %d bytes skipped during packet decode.\n", remainder);
+    }
 }
 
 static int open_packet(void)
@@ -86,6 +157,7 @@ static int open_packet(void)
     byte_position = 0;
     bit_position = 0;
     packet_size_count = 0;
+    prefetch_depth = 0;
     EOP_flag = false;
     return 0;
 }

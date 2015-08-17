@@ -134,11 +134,15 @@ void __attribute__((hot)) FDCT_IV(float *X, int V_N_bits)
     }
     for(int i = V_N - 1; i > 3; i -= 4) {
         X[i] += X[i - 4];
+        X[i - 1] += X[i - 5];
     }
-    for(int i = V_N - 2; i > 2; i -= 4) {
-        X[i] += X[i - 4];
+    for(int i = V_N - 1; i > 7; i -= 8) {
+        X[i] += X[i - 8];
+        X[i - 1] += X[i - 9];
+        X[i - 2] += X[i - 10];
+        X[i - 3] += X[i - 11];
     }
-    for(int i = 3; i < V_N_bits - 3; i++) {
+    for(int i = 4; i < V_N_bits - 3; i++) {
         for(int j = 0; j < (1 << (i - 1)); j++) {
             float prev = 0.0f;
             for(int k = j | (1 << (i - 1)); k < V_N; k += (1 << i)) {

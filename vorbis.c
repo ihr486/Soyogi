@@ -119,7 +119,7 @@ void decode_audio_packet(void)
 
     clock_t initial_clock = clock();
 
-    int mode_number = read_unsigned_value(ilog(mode_num - 1));
+    int mode_number = read_unsigned_value_PF(ilog(mode_num - 1));
 
     vorbis_mode_t *mode = &mode_list[mode_number];
 
@@ -129,8 +129,8 @@ void decode_audio_packet(void)
     int previous_window_flag = 1, next_window_flag = 1;
 
     if(mode->blockflag) {
-        previous_window_flag = read_unsigned_value(1);
-        next_window_flag = read_unsigned_value(1);
+        previous_window_flag = read_bit_PF();
+        next_window_flag = read_bit_PF();
     }
 
     mapping_header_t *mapping = &mapping_list[mode->mapping];
@@ -207,7 +207,7 @@ void decode_audio_packet(void)
             audio[i + V_N / 2] = (int16_t)rh[i];
             audio[i] = (int16_t)v_out[i + V_N / 2];
         }
-        //pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * V_N, NULL);
+        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * V_N, NULL);
     } else {
         if(!previous_window_flag) {
             for(int i = 0; i < B_N[0] / 4; i++) {
@@ -230,7 +230,7 @@ void decode_audio_packet(void)
                 audio[B_N[1] / 4 + i] = (int16_t)rh[i];
             }
         }
-        //pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, NULL);
+        pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, NULL);
     }
 
     for(int i = 0; i < audio_channels; i++) {
@@ -239,13 +239,7 @@ void decode_audio_packet(void)
     setup_set_head(setup_origin);
 
     double packet_time = MS_ELAPSED(initial_clock);
-    /*printf("Size %d decoded in %lf[ms].\n", V_N * 2, (double)(final_clock - initial_clock) / (double)CLOCKS_PER_SEC * 1000.0);
-    printf("\tFloor1 decode took %lf[ms].\n", floor1_decode_time);
-    printf("\tResidue decode took %lf[ms].\n", residue_time);
-    printf("\tFloor1 synthesis took %lf[ms].\n", floor1_synthesis_time);
-    printf("\tFDCT took %lf[ms].\n", FDCT_time);*/
-    //printf("%lf %lf %lf %lf %lf\n", packet_time, floor1_decode_time, residue_time, floor1_synthesis_time, FDCT_time);
-    //printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
+    printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 }
 
 int decode_packet(void)
@@ -275,6 +269,8 @@ int decode_packet(void)
             return 1;
         }
     } else {
+        prefetch_packet(1);
+
         decode_audio_packet();
     }
 
