@@ -8,8 +8,8 @@ OBJS := $(COBJS)
 BIN := decoder
 
 CC := gcc
-CFLAGS := -Wall -Wextra -std=c99 -O2 -Ipulse
-LDFLAGS := -lm -lpulse -lpulse-simple
+CFLAGS := -Wall -Wextra -std=c99 -O2
+LDFLAGS := -lm
 
 .PHONY: all check clean
 

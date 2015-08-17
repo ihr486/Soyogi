@@ -1,7 +1,11 @@
 #ifndef DECODER_H
 #define DECODER_H
 
-#define _XOPEN_SOURCE
+/*#define _XOPEN_SOURCE
+#define _POSIX_C_SOURCE 2
+#define __USE_POSIX2*/
+
+#undef __STRICT_ANSI__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,8 +17,8 @@
 #include <setjmp.h>
 #include <time.h>
 
-#include <pulse/pulseaudio.h>
-#include <pulse/simple.h>
+//#include <pulse/pulseaudio.h>
+//#include <pulse/simple.h>
 
 void decode(void);
 
@@ -32,7 +36,8 @@ void FDCT_IV(float *X, int V_N_bits);
 extern uint8_t audio_channels;
 extern uint16_t B_N_bits[2], B_N[2];
 
-extern pa_simple *pulse_ctx;
+extern FILE *sox;
+//extern pa_simple *pulse_ctx;
 
 #include "misc.h"
 #include "vorbis_helper.h"

@@ -207,7 +207,7 @@ void decode_audio_packet(void)
             audio[i + V_N / 2] = (int16_t)rh[i];
             audio[i] = (int16_t)v_out[i + V_N / 2];
         }
-        //pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * V_N, NULL);
+        fwrite(audio, sizeof(int16_t) * V_N, 1, sox);
     } else {
         if(!previous_window_flag) {
             for(int i = 0; i < B_N[0] / 4; i++) {
@@ -230,7 +230,7 @@ void decode_audio_packet(void)
                 audio[B_N[1] / 4 + i] = (int16_t)rh[i];
             }
         }
-        //pa_simple_write(pulse_ctx, audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, NULL);
+        fwrite(audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, 1, sox);
     }
 
     for(int i = 0; i < audio_channels; i++) {
@@ -239,7 +239,7 @@ void decode_audio_packet(void)
     setup_set_head(setup_origin);
 
     double packet_time = MS_ELAPSED(initial_clock);
-    //printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
+    printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 }
 
 int decode_packet(void)
