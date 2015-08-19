@@ -38,17 +38,14 @@ static inline void insert_codeword(const codebook_t *cb, uint16_t index, uint8_t
 
     if(cb->entries < 128) {
         if(cb->huffman == setup_get_head()) {
-            pos = setup_allocate_packed(2);
-            setup_set_byte(pos, 0);
-            setup_set_byte(pos + 1, 0);
+            setup_push_short(0);
         }
         pos += (codeword >> 31) & 1;
         for(int i = 1; i < length; i++) {
             if(!setup_get_byte(pos)) {
-                uint16_t new_pos = setup_allocate_packed(2);
+                uint16_t new_pos = setup_get_head();
                 setup_set_byte(pos, (new_pos - cb->huffman) / 2);
-                setup_set_byte(new_pos, 0);
-                setup_set_byte(new_pos + 1, 0);
+                setup_push_short(0);
                 pos = new_pos;
             } else {
                 pos = cb->huffman + setup_get_byte(pos) * 2;
@@ -243,7 +240,7 @@ int16_t __attribute__((hot)) lookup_scalar(int index)
 {
     codebook_t *cb = &codebook_list[index];
 
-    uint16_t pos = 0;
+    uint32_t pos = 0;
     int16_t ret = 0;
 
     if(cb->entries < 128) {
@@ -253,18 +250,18 @@ int16_t __attribute__((hot)) lookup_scalar(int index)
         ret = pos & 0x7F;
     } else if(cb->entries < 2048) {
         while(!(pos & 0x800)) {
+            pos = setup_get_long(cb->huffman + pos * 3);
             if(read_bit_PF()) {
-                pos = ((uint16_t)setup_get_byte(cb->huffman + pos * 3 + 2) << 4) | (setup_get_byte(cb->huffman + pos * 3 + 1) >> 4);
-            } else {
-                pos = ((uint16_t)(setup_get_byte(cb->huffman + pos * 3 + 1) & 0x0F) << 8) | setup_get_byte(cb->huffman + pos * 3);
+                pos >>= 12;
             }
+            pos &= 0xFFF;
         }
         ret = pos & 0x7FF;
     } else {
         while(!(pos & 0x8000)) {
             pos = pos * 4 + read_bit_PF() * 2;
 
-            pos = ((uint16_t)setup_get_byte(cb->huffman + pos + 1) << 8) | setup_get_byte(cb->huffman + pos);
+            pos = setup_get_short(cb->huffman + pos);
         }
         ret = pos & 0x7FFF;
     }
@@ -288,20 +285,17 @@ int __attribute__((hot)) lookup_vector(float *v, int offset, int index, int step
             int multiplicand_offset = (lookup_offset / index_divisor) % vq->lookup_values;
             float element = 0.0f;
 
-            switch(vq->lookup_mode) {
-            case 8:
+            if(vq->lookup_mode == 8) {
                 element = setup_get_byte(vq->table + multiplicand_offset) * vq->delta_value + vq->minimum_value + last;
-                break;
-            case 16:
+            } else {
                 element = setup_get_short(vq->table + multiplicand_offset * 2) * vq->delta_value + vq->minimum_value + last;
-                break;
             }
 
             if(vq->sequence_p) {
                 last = element;
             }
 
-            v[(offset + i) / period + ((offset + i) % period) * step] += element;
+            v[((offset + i) / period) + ((offset + i) % period) * step] += element;
             index_divisor *= vq->lookup_values;
         }
     } break;

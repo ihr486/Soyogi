@@ -29,7 +29,7 @@ uint64_t read_unsigned_long_long(void);
 
 extern bool EOF_flag;
 
-int decode_packet(void);
+void decode_packet(void);
 
 void FDCT_IV(float *X, int V_N_bits);
 

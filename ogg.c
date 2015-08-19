@@ -167,7 +167,7 @@ void decode(void)
     while(1) {
         if(open_packet()) break;
 
-        if(decode_packet()) break;
+        decode_packet();
 
         close_packet();
     }

@@ -7,13 +7,12 @@ uint16_t B_N_bits[2] = {0, 0}, B_N[2] = {0, 0};
 
 int16_t *audio = NULL;
 
-static int decode_identification_header(void)
+static void decode_identification_header(void)
 {
     uint32_t vorbis_version = read_unsigned_value(32);
 
     if(vorbis_version != 0) {
-        fprintf(stderr, "Unsupported codec version: %u.\n", vorbis_version);
-        return 1;
+        ERROR(ERROR_VORBIS, "Unsupported codec version: %u.\n", vorbis_version);
     }
 
     audio_channels = read_unsigned_value(8);
@@ -28,8 +27,7 @@ static int decode_identification_header(void)
     B_N[1] = 1 << B_N_bits[1];
 
     if(B_N[1] > 4096) {
-        fprintf(stderr, "Unsupported greater blocksizes: %u/%u.\n", B_N[0], B_N[1]);
-        return 1;
+        ERROR(ERROR_VORBIS, "Unsupported greater blocksizes: %u/%u.\n", B_N[0], B_N[1]);
     }
 
     audio = (int16_t *)malloc(sizeof(int16_t) * B_N[1] / 2);
@@ -38,8 +36,6 @@ static int decode_identification_header(void)
         ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
 
     INFO("%d ch, %d SPS, %d bps nominal, %d/%d SPB\n", audio_channels, audio_sample_rate, bitrate_nominal, B_N[0], B_N[1]);
-
-    return 0;
 }
 
 #define MAX_COMMENT_LENGTH 32768
@@ -63,7 +59,7 @@ static int decode_comment(char *buf)
     return i;
 }
 
-static int decode_comment_header(void)
+static void decode_comment_header(void)
 {
     char comment[MAX_COMMENT_LENGTH];
 
@@ -78,10 +74,9 @@ static int decode_comment_header(void)
 
         //printf("%s\n", comment);
     }
-    return 0;
 }
 
-static int decode_setup_header(void)
+static void decode_setup_header(void)
 {
     setup_codebooks();
 
@@ -91,8 +86,7 @@ static int decode_setup_header(void)
         uint16_t dummy = read_unsigned_value(16);
 
         if(dummy) {
-            fprintf(stderr, "Time domain transforms are not used in Vorbis I.\n");
-            return 1;
+            ERROR(ERROR_VORBIS, "Time domain transforms are not used in Vorbis I.\n");
         }
     }
 
@@ -107,8 +101,6 @@ static int decode_setup_header(void)
     setup_vectors();
 
     INFO("%d bytes of setup stack consumed.\n", setup_get_head());
-
-    return 0;
 }
 
 #define MS_ELAPSED(t) ((double)(clock() - t) / (double)CLOCKS_PER_SEC * 1000.0)
@@ -207,7 +199,6 @@ void decode_audio_packet(void)
             audio[i + V_N / 2] = (int16_t)rh[i];
             audio[i] = (int16_t)v_out[i + V_N / 2];
         }
-        fwrite(audio, sizeof(int16_t) * V_N, 1, sox);
     } else {
         if(!previous_window_flag) {
             for(int i = 0; i < B_N[0] / 4; i++) {
@@ -230,8 +221,9 @@ void decode_audio_packet(void)
                 audio[B_N[1] / 4 + i] = (int16_t)rh[i];
             }
         }
-        fwrite(audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, 1, sox);
     }
+
+    int this_window_flag = vector_list[0].next_window_flag;
 
     for(int i = 0; i < audio_channels; i++) {
         cache_righthand(V_N, i, next_window_flag);
@@ -240,9 +232,15 @@ void decode_audio_packet(void)
 
     double packet_time = MS_ELAPSED(initial_clock);
     printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
+
+    if(previous_window_flag && this_window_flag) {
+        fwrite(audio, sizeof(int16_t) * V_N, 1, sox);
+    } else {
+        fwrite(audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, 1, sox);
+    }
 }
 
-int decode_packet(void)
+void decode_packet(void)
 {
     if(read_unsigned_value(1)) {
         uint8_t header_type = read_unsigned_value(7);
@@ -253,26 +251,25 @@ int decode_packet(void)
            read_unsigned_value(8) != 'b' ||
            read_unsigned_value(8) != 'i' ||
            read_unsigned_value(8) != 's') {
-            fprintf(stderr, "Corrupted header signature.\n");
-            return 1;
+            ERROR(ERROR_VORBIS, "Corrupted header signature.\n");
         }
 
         switch(header_type) {
         case 0:
-            return decode_identification_header();
+            decode_identification_header();
+            break;
         case 1:
-            return decode_comment_header();
+            decode_comment_header();
+            break;
         case 2:
-            return decode_setup_header();
+            decode_setup_header();
+            break;
         default:
-            fprintf(stderr, "Illegal header type: %u.\n", header_type);
-            return 1;
+            ERROR(ERROR_VORBIS, "Illegal header type: %u.\n", header_type);
         }
     } else {
         prefetch_packet(1);
 
         decode_audio_packet();
     }
-
-    return 0;
 }
