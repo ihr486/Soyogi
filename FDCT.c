@@ -7,30 +7,21 @@ static inline void swap(float *A, float *B)
     *B = t;
 }
 
-const float PI = 3.141592653589793f;
-
-static inline int reverse_bits(int n, int m)
-{
-    int ret = 0;
-    while(m--) {
-        ret = (ret << 1) | (n & 1);
-        n >>= 1;
-    }
-    return ret;
-}
-
 static void FDCT_R_II(float *X, int N_bits);
 
 static void FDCT_R_IV(float *X, int N_bits)
 {
     if(N_bits == 0) {
-        X[0] *= cos(0.25f * PI);
+        X[0] *= 0.70710678f;
     } else {
         int N = 1 << N_bits;
 
         for(int i = 0; i < N / 2; i++) {
-            float alpha = X[i] * cos(0.5f * PI / N * (i + 0.5f)) + X[N - 1 - i] * sin(0.5f * PI / N * (i + 0.5f));
-            float beta = X[i] * sin(0.5f * PI / N * (i + 0.5f)) - X[N - 1 - i] * cos(0.5f * PI / N * (i + 0.5f));
+            float c = cosine_table1_1024[N_bits - 1][i];
+            float s = sine_table1_1024[N_bits - 1][i];
+
+            float alpha = X[i] * c + X[N - 1 - i] * s;
+            float beta = X[i] * s - X[N - 1 - i] * c;
 
             X[i] = alpha;
             X[N - 1 - i] = beta;
@@ -52,11 +43,13 @@ static void FDCT_R_IV(float *X, int N_bits)
         }
 
         for(int i = 1; i < N / 2; i++) {
-            float alpha = X[i] - X[reverse_bits(reverse_bits(i, N_bits) - 1, N_bits)];
-            float beta = X[i] + X[reverse_bits(reverse_bits(i, N_bits) - 1, N_bits)];
+            int r = reverse_2048[(reverse_2048[i] >> (11 - N_bits)) - 1] >> (11 - N_bits);
+
+            float alpha = X[i] - X[r];
+            float beta = X[i] + X[r];
 
             X[i] = alpha;
-            X[reverse_bits(reverse_bits(i, N_bits) - 1, N_bits)] = beta;
+            X[r] = beta;
         }
     }
 }
@@ -88,7 +81,7 @@ void FDCT_IV(float *X, int N_bits)
     FDCT_R_IV(X, N_bits);
 
     for(int i = 0; i < (1 << N_bits); i++) {
-        int j = reverse_bits(i, N_bits);
+        int j = reverse_2048[i] >> (11 - N_bits);
         if(i < j) {
             swap(&X[i], &X[j]);
         }
