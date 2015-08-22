@@ -1,5 +1,5 @@
 # Soyogi
-Floating-point Ogg/Vorbis decoder for embedded platforms
+Floating-point/Fixed-point Ogg/Vorbis decoder for embedded platforms
 
 ## Overview
 Soyogi(そよぎ, "tremor" in Japanese) is designed to run on some variants of Renesas RX231 MCU,
@@ -10,6 +10,7 @@ Its salient features include:
 * Totally static memory use, in a sense that neither heap area nor dynamic stack is required
 * Variable-length CAR (Compressed Array Representation) for Huffman tree, which saves around 25% of codebook RAM
 * Most of the stereo Ogg/Vorbis files with blocksizes 256 and 2048 could be decoded with only 24KiB of codec RAM on average
+* Fixed point implementation for environments without FPU is also available as a separate branch
 
 ## Inverse MDCT via DCT-IV
 Instead of extracting 2N time-domain samples from the vector,
@@ -32,6 +33,9 @@ with MPU (Memory Protection Unit) functionality.
 Single dedicated stack for codec setup makes it easier to confine
 the location of memory errors.
 Errors are accumulated and detected once at the end of packet.
+
+## Fixed-point version
+Fixed-point version of Soyogi would be preferable if your CPU supports 32x32=64 multiplication.
 
 ## Limitations
 * The maximum number of (sparse) codebook entries is 32767.
