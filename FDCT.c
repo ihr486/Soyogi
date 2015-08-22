@@ -1,50 +1,50 @@
 #include "decoder.h"
 
-static inline void swap(float *A, float *B)
+static inline void swap(FIX *A, FIX *B)
 {
-    float t = *A;
+    FIX t = *A;
     *A = *B;
     *B = t;
 }
 
-static inline void FDCT_8(float *X)
+static inline void FDCT_8(FIX *X)
 {
-    X[1] *= 0.7071067f;
-    X[3] *= 0.7071067f;
-    X[5] *= 0.7071067f;
-    X[7] *= 0.7071067f;
+    X[1] = FIX_MUL16(X[1], 0xB504);
+    X[3] = FIX_MUL16(X[3], 0xB504);
+    X[5] = FIX_MUL16(X[5], 0xB504);
+    X[7] = FIX_MUL16(X[7], 0xB504);
 
-    register float alpha, beta;
+    register FIX alpha, beta;
     alpha = X[0] + X[1], beta = X[0] - X[1];
     X[0] = alpha, X[1] = beta;
     alpha = X[2] + X[3], beta = X[2] - X[3];
-    X[2] = alpha * 0.5411961f;
-    X[3] = beta * 1.306563f;
+    X[2] = FIX_MUL16(alpha, 0x8A8B);
+    X[3] = FIX_MUL16(beta, 0x14E7A);
     alpha = X[4] + X[5], beta = X[4] - X[5];
     X[4] = alpha, X[5] = beta;
     alpha = X[6] + X[7], beta = X[6] - X[7];
-    X[6] = alpha * 0.5411961f;
-    X[7] = beta * 1.306563f;
+    X[6] = FIX_MUL16(alpha, 0x8A8B);
+    X[7] = FIX_MUL16(beta, 0x14E7A);
 
     alpha = X[0] + X[2], beta = X[0] - X[2];
     X[0] = alpha, X[2] = beta;
     alpha = X[1] + X[3], beta = X[1] - X[3];
     X[1] = alpha, X[3] = beta;
     alpha = X[4] + X[6], beta = X[4] - X[6];
-    X[4] = alpha * 0.5097956f;
-    X[6] = beta * 2.562915f;
+    X[4] = FIX_MUL16(alpha, 0x8281);
+    X[6] = FIX_MUL16(beta, 0x2901B);
     alpha = X[5] + X[7], beta = X[5] - X[7];
-    X[5] = alpha * 0.6013449f;
-    X[7] = beta * 0.8999762f;
+    X[5] = FIX_MUL16(alpha, 0x99F1);
+    X[7] = FIX_MUL16(beta, 0xE664);
 
     alpha = X[2], beta = X[6];
     X[2] = X[3], X[6] = X[7];
     X[3] = alpha, X[7] = beta;
 }
 
-static void FDCT_R_IV(float *X, int V_N_bits);
+static void FDCT_R_IV(FIX *X, int V_N_bits);
 
-static void FDCT_R_III(float *X, int V_N_bits)
+static void FDCT_R_III(FIX *X, int V_N_bits)
 {
     int half_V_N = 1 << (V_N_bits - 1);
 
@@ -53,8 +53,8 @@ static void FDCT_R_III(float *X, int V_N_bits)
         FDCT_R_IV(X + half_V_N, V_N_bits - 1);
 
         for(int i = 0; i < half_V_N; i++) {
-            float alpha = X[i] + X[i + half_V_N];
-            float beta = X[i] - X[i + half_V_N];
+            FIX alpha = X[i] + X[i + half_V_N];
+            FIX beta = X[i] - X[i + half_V_N];
 
             X[i] = alpha;
             X[i + half_V_N] = beta;
@@ -65,7 +65,7 @@ static void FDCT_R_III(float *X, int V_N_bits)
     } else {
         FDCT_8(X);
 
-        register float alpha, beta;
+        register FIX alpha, beta;
         alpha = X[0] + X[4], beta = X[0] - X[4];
         X[0] = alpha, X[4] = beta;
         alpha = X[1] + X[5], beta = X[1] - X[5];
@@ -81,7 +81,7 @@ static void FDCT_R_III(float *X, int V_N_bits)
     }
 }
 
-static void FDCT_R_IV(float *X, int V_N_bits)
+static void FDCT_R_IV(FIX *X, int V_N_bits)
 {
     int half_V_N = 1 << (V_N_bits - 1);
 
@@ -90,11 +90,11 @@ static void FDCT_R_IV(float *X, int V_N_bits)
         FDCT_R_IV(X + half_V_N, V_N_bits - 1);
 
         for(int i = 0; i < half_V_N; i++) {
-            float alpha = X[i] + X[i + half_V_N];
-            float beta = X[i] - X[i + half_V_N];
+            FIX alpha = X[i] + X[i + half_V_N];
+            FIX beta = X[i] - X[i + half_V_N];
 
-            X[i] = alpha * half_secant_table1_1024[V_N_bits - 1][i];
-            X[i + half_V_N] = beta * half_cosecant_table1_1024[V_N_bits - 1][i];
+            X[i] = FIX_MUL16(alpha, half_secant_table8_1024[V_N_bits - 4][i]);
+            X[i + half_V_N] = FIX_MUL16(beta, half_cosecant_table8_1024[V_N_bits - 4][i]);
         }
         for(int i = 0; i < half_V_N / 2; i++) {
             swap(&X[i + half_V_N], &X[(1 << V_N_bits) - 1 - i]);
@@ -102,19 +102,19 @@ static void FDCT_R_IV(float *X, int V_N_bits)
     } else {
         FDCT_8(X);
 
-        float alpha, beta;
+        FIX alpha, beta;
         alpha = X[0] + X[4], beta = X[0] - X[4];
-        X[0] = alpha * 0.5024193f;
-        X[4] = beta * 5.101149f;
+        X[0] = FIX_MUL16(alpha, 0x809E);
+        X[4] = FIX_MUL16(beta, 0x519E4);
         alpha = X[1] + X[5], beta = X[1] - X[5];
-        X[1] = alpha * 0.5224986f;
-        X[5] = beta * 1.722447f;
+        X[1] = FIX_MUL16(alpha, 0x85C2);
+        X[5] = FIX_MUL16(beta, 0x1B8F2);
         alpha = X[2] + X[6], beta = X[2] - X[6];
-        X[2] = alpha * 0.5669441f;
-        X[6] = beta * 1.060678f;
+        X[2] = FIX_MUL16(alpha, 0x9123);
+        X[6] = FIX_MUL16(beta, 0x10F88);
         alpha = X[3] + X[7], beta = X[3] - X[7];
-        X[3] = alpha * 0.6468218f;
-        X[7] = beta * 0.7881546f;
+        X[3] = FIX_MUL16(alpha, 0xA596);
+        X[7] = FIX_MUL16(beta, 0xC9C4);
 
         alpha = X[4], beta = X[5];
         X[4] = X[7], X[5] = X[6];
@@ -122,7 +122,7 @@ static void FDCT_R_IV(float *X, int V_N_bits)
     }
 }
 
-void __attribute__((hot)) FDCT_IV(float *X, int V_N_bits)
+void __attribute__((hot)) FDCT_IV(FIX *X, int V_N_bits)
 {
     int V_N = 1 << V_N_bits;
 
@@ -144,9 +144,9 @@ void __attribute__((hot)) FDCT_IV(float *X, int V_N_bits)
     }
     for(int i = 4; i < V_N_bits - 3; i++) {
         for(int j = 0; j < (1 << (i - 1)); j++) {
-            float prev = 0.0f;
+            FIX prev = 0;
             for(int k = j | (1 << (i - 1)); k < V_N; k += (1 << i)) {
-                float temp = X[k];
+                FIX temp = X[k];
                 X[k] += prev;
                 prev = temp;
             }
@@ -172,6 +172,11 @@ void __attribute__((hot)) FDCT_IV(float *X, int V_N_bits)
             swap(&X[i], &X[j]);
         }
     }
+
+    for(int i = 0; i < V_N; i++) {
+        printf("%d ", X[i]);
+    }
+    printf("\n");
 
     FDCT_R_IV(X, V_N_bits);
 }

@@ -66,15 +66,15 @@ void decode_residue(int V_N_bits, int index, int offset, int vectors)
     int V_N = 1 << V_N_bits;
     int actual_size = V_N, actual_vectors = vectors;
 
-    vector_list[offset].body = setup_allocate_natural(sizeof(float) * V_N * vectors);
+    vector_list[offset].body = setup_allocate_natural(sizeof(FIX) * V_N * vectors);
 
     for(int i = 0; i < vectors; i++) {
-        vector_list[offset + i].body = vector_list[offset].body + sizeof(float) * V_N * i;
+        vector_list[offset + i].body = vector_list[offset].body + sizeof(FIX) * V_N * i;
     }
 
-    float *v = setup_ref(vector_list[offset].body);
+    FIX *v = setup_ref(vector_list[offset].body);
 
-    memset(v, 0, sizeof(float) * V_N * vectors);
+    memset(v, 0, sizeof(FIX) * V_N * vectors);
 
     if(residue->type == 2) {
         actual_size *= vectors;
@@ -127,18 +127,18 @@ void decode_residue(int V_N_bits, int index, int offset, int vectors)
                                     period = codebook_list[vqbook].dimension;
                                     origin = residue->partition_size * partition_count + limit_residue_begin;
                                     for(int k = 0; k < step; k++) {
-                                        if(!lookup_vector((float *)setup_ref(vector_list[offset + j].body) + (origin + k), 0, vqbook, step, period)) return;
+                                        if(!lookup_vector((FIX *)setup_ref(vector_list[offset + j].body) + (origin + k), 0, vqbook, step, period)) return;
                                     }
                                     break;
                                 case 1:
                                     for(int k = 0; k < residue->partition_size; k += codebook_list[vqbook].dimension) {
-                                        if(!lookup_vector((float *)setup_ref(vector_list[offset + j].body) + k, 0, vqbook, 1, 1)) return;
+                                        if(!lookup_vector((FIX *)setup_ref(vector_list[offset + j].body) + k, 0, vqbook, 1, 1)) return;
                                     }
                                     break;
                                 case 2:
                                     origin = residue->partition_size * partition_count + limit_residue_begin;
                                     for(int k = 0; k < residue->partition_size; k += codebook_list[vqbook].dimension) {
-                                        if(!lookup_vector((float *)setup_ref(vector_list[offset + j].body), origin + k, vqbook, V_N, vectors)) return;
+                                        if(!lookup_vector((FIX *)setup_ref(vector_list[offset + j].body), origin + k, vqbook, V_N, vectors)) return;
                                     }
                                     break;
                                 }

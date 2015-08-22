@@ -31,4 +31,9 @@ extern jmp_buf jump_env;
 #define ERROR_VORBIS 10
 #define DECODE_FINISHED 11
 
+typedef int32_t FIX;
+
+#define FIX_MUL16(x, y) (((int64_t)x * (int64_t)y) >> 16)
+#define FIX_MUL32(x, y) (((int64_t)x * (uint64_t)y) >> 32)
+
 #endif

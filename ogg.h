@@ -10,7 +10,7 @@ extern unsigned int prefetch_depth, prefetch_position;
 
 void fetch_page(void);
 uint32_t read_unsigned_value(int n);
-float read_float32(void);
+FIX read_float32(void);
 void prefetch_packet(int offset);
 
 inline uint32_t read_unsigned_value_PF(int n)

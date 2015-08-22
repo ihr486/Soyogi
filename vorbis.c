@@ -173,7 +173,7 @@ void decode_audio_packet(void)
     }
 
     for(int i = 0; i < audio_channels; i++) {
-        float *v = setup_ref(vector_list[i].body);
+        FIX *v = setup_ref(vector_list[i].body);
 
         if(vector_list[i].nonzero) {
             synthesize_floor1(V_N, i);
@@ -183,17 +183,18 @@ void decode_audio_packet(void)
 
         FDCT_IV(v, V_N_bits);
 
-        FDCT_time += MS_ELAPSED(FDCT_entry);
+        /*for(int j = 0; j < V_N; j++) {
+            printf("%d ", v[j]);
+        }*/
+        printf("\n");
 
-        for(int j = 0; j < V_N; j++) {
-            v[j] *= 3000.f;
-        }
+        FDCT_time += MS_ELAPSED(FDCT_entry);
 
         overlap_add(V_N_bits, i, previous_window_flag);
     }
 
-    float *v_out = setup_ref(vector_list[0].body);
-    float *rh = setup_ref(vector_list[0].right_hand);
+    FIX *v_out = setup_ref(vector_list[0].body);
+    FIX *rh = setup_ref(vector_list[0].right_hand);
     if(previous_window_flag && vector_list[0].next_window_flag) {
         for(int i = 0; i < V_N / 2; i++) {
             audio[i + V_N / 2] = (int16_t)rh[i];

@@ -61,14 +61,23 @@ uint32_t read_unsigned_value(int n)
     return ret & MASK32(n);
 }
 
-float read_float32(void)
+FIX read_float32(void)
 {
-    float mantissa = read_unsigned_value(21);
+    /*float mantissa = read_unsigned_value(21);
     int exponent = read_unsigned_value(10) - 788;
     if(read_unsigned_value(1)) {
         return -ldexpf(mantissa, exponent);
     }
-    return ldexpf(mantissa, exponent);
+    return ldexpf(mantissa, exponent);*/
+    int32_t mantissa = read_unsigned_value(21);
+    int exponent = read_unsigned_value(10) - 788;
+    if(read_unsigned_value(1)) {
+        printf("-%u * 2 ^ %d\n", mantissa, exponent);
+        return -(mantissa >> (-exponent));
+    } else {
+        printf("%u * 2 ^ %d\n", mantissa, exponent);
+        return mantissa >> (-exponent);
+    }
 }
 
 void prefetch_packet(int offset)
