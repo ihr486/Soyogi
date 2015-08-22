@@ -65,7 +65,7 @@ void apply_window(FIX *A, FIX *B, int V_N_bits)
 {
     int V_N = 1 << V_N_bits;
 
-    const FIX *win = vwin32_2048[V_N_bits - 5];
+    const uint32_t *win = vwin32_2048[V_N_bits - 5];
 
     for(int i = 0; i < V_N / 2; i++) {
         FIX alpha = -FIX_MUL32(A[V_N / 2 - 1 - i], win[i]) - FIX_MUL32(B[i], win[V_N - 1 - i]);

@@ -183,12 +183,11 @@ void decode_audio_packet(void)
 
         FDCT_IV(v, V_N_bits);
 
-        /*for(int j = 0; j < V_N; j++) {
-            printf("%d ", v[j]);
-        }*/
-        printf("\n");
-
         FDCT_time += MS_ELAPSED(FDCT_entry);
+
+        for(int j = 0; j < V_N; j++) {
+            v[j] /= 20;
+        }
 
         overlap_add(V_N_bits, i, previous_window_flag);
     }

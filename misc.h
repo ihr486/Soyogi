@@ -33,7 +33,6 @@ extern jmp_buf jump_env;
 
 typedef int32_t FIX;
 
-#define FIX_MUL16(x, y) (((int64_t)x * (int64_t)y) >> 16)
-#define FIX_MUL32(x, y) (((int64_t)x * (uint64_t)y) >> 32)
+#define FIX_MUL32(x, y) (FIX)(((int64_t)x * (int64_t)y) >> 32)
 
 #endif
