@@ -203,7 +203,7 @@ static void decode_codebook(int index)
         header->minimum_value = read_float32();
         header->delta_value = read_float32();
 
-        printf("Min = %d, Delta = %d\n", header->minimum_value, header->delta_value);
+        //printf("Min = %d, Delta = %d\n", header->minimum_value, header->delta_value);
 
         uint8_t value_bits = read_unsigned_value(4) + 1;
         header->sequence_p = read_unsigned_value(1);

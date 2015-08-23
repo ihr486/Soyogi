@@ -231,7 +231,7 @@ void decode_audio_packet(void)
     setup_set_head(setup_origin);
 
     double packet_time = MS_ELAPSED(initial_clock);
-    printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
+    //printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 
     if(previous_window_flag && this_window_flag) {
         fwrite(audio, sizeof(int16_t) * V_N, 1, sox);

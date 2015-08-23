@@ -72,14 +72,14 @@ FIX read_float32(void)
     int32_t mantissa = read_unsigned_value(21);
     int exponent = read_unsigned_value(10) - 788;
     if(read_unsigned_value(1)) {
-        printf("-%u * 2 ^ %d\n", mantissa, exponent);
+        //printf("-%u * 2 ^ %d\n", mantissa, exponent);
         if(exponent < -16) {
             return -(mantissa >> (-exponent - 16));
         } else {
             return -(mantissa << (16 + exponent));
         }
     } else {
-        printf("%u * 2 ^ %d\n", mantissa, exponent);
+        //printf("%u * 2 ^ %d\n", mantissa, exponent);
         if(exponent < -16) {
             return mantissa >> (-exponent - 16);
         } else {
@@ -110,7 +110,7 @@ void fetch_page(void)
        read_unsigned_byte() != 'g' ||
        read_unsigned_byte() != 'g' ||
        read_unsigned_byte() != 'S') {
-        fprintf(stderr, "Missing Ogg page header signature\n");
+        //fprintf(stderr, "Missing Ogg page header signature\n");
         return;
     }
 
