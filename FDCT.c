@@ -7,22 +7,80 @@ inline void swap(FIX *x, FIX *y)
     *y = t;
 }
 
-int reverse_bits(int n, int m)
-{
-    int ret = 0;
-    while(m--) {
-        ret = (ret << 1) | (n & 1);
-        n >>= 1;
-    }
-    return ret;
-}
-
 void FDCT_R_II(FIX *X, int N_bits);
 
 void FDCT_R_IV(FIX *X, int N_bits)
 {
-    if(N_bits == 0) {
-        X[0] = FIX_MUL32(X[0], 0xB504F333);
+    if(N_bits == 3) {
+        register FIX alpha, beta;
+        alpha = FIX_MUL32(X[0], cosine_table1_1024[2][0]) + FIX_MUL32(X[7], sine_table1_1024[2][0]);
+        beta = FIX_MUL32(X[0], sine_table1_1024[2][0]) - FIX_MUL32(X[7], cosine_table1_1024[2][0]);
+
+        X[0] = alpha, X[7] = beta;
+
+        alpha = FIX_MUL32(X[1], cosine_table1_1024[2][1]) + FIX_MUL32(X[6], sine_table1_1024[2][1]);
+        beta = FIX_MUL32(X[1], sine_table1_1024[2][1]) - FIX_MUL32(X[6], cosine_table1_1024[2][1]);
+
+        X[1] = alpha, X[6] = -beta;
+
+        alpha = FIX_MUL32(X[2], cosine_table1_1024[2][2]) + FIX_MUL32(X[5], sine_table1_1024[2][2]);
+        beta = FIX_MUL32(X[2], sine_table1_1024[2][2]) - FIX_MUL32(X[5], cosine_table1_1024[2][2]);
+
+        X[2] = alpha, X[5] = beta;
+
+        alpha = FIX_MUL32(X[3], cosine_table1_1024[2][3]) + FIX_MUL32(X[4], sine_table1_1024[2][3]);
+        beta = FIX_MUL32(X[3], sine_table1_1024[2][3]) - FIX_MUL32(X[4], cosine_table1_1024[2][3]);
+
+        X[3] = alpha, X[4] = -beta;
+
+        alpha = X[4], X[4] = X[7], X[7] = alpha;
+
+        alpha = X[5], X[5] = X[6], X[6] = alpha;
+
+        alpha = X[0] + X[3], beta = X[0] - X[3];
+        X[0] = alpha, X[3] = beta;
+
+        alpha = X[1] + X[2], beta = X[1] - X[2];
+        X[1] = alpha, X[2] = beta;
+
+        alpha = X[4] + X[7], beta = X[4] - X[7];
+        X[4] = alpha, X[7] = beta;
+
+        alpha = X[5] + X[6], beta = X[5] - X[6];
+        X[5] = alpha, X[6] = beta;
+
+        alpha = X[2], X[2] = X[3], X[3] = alpha;
+
+        alpha = X[6], X[6] = X[7], X[7] = alpha;
+
+        alpha = X[0] + X[1], beta = X[0] - X[1];
+        X[0] = alpha, X[1] = beta;
+
+        alpha = FIX_MUL32(X[2], cosine_table1_1024[0][0]) + FIX_MUL32(X[3], sine_table1_1024[0][0]);
+        beta = FIX_MUL32(X[2], sine_table1_1024[0][0]) - FIX_MUL32(X[3], cosine_table1_1024[0][0]);
+        X[2] = alpha, X[3] = beta;
+
+        alpha = X[4] + X[5], beta = X[4] - X[5];
+        X[4] = alpha, X[5] = beta;
+
+        alpha = FIX_MUL32(X[6], cosine_table1_1024[0][0]) + FIX_MUL32(X[7], sine_table1_1024[0][0]);
+        beta = FIX_MUL32(X[6], sine_table1_1024[0][0]) - FIX_MUL32(X[7], cosine_table1_1024[0][0]);
+        X[6] = alpha, X[7] = beta;
+
+        X[1] = FIX_MUL32(X[1], 0xB504F333);
+        X[5] = FIX_MUL32(X[5], 0xB504F333);
+
+        alpha = X[4], X[4] = X[7], X[7] = alpha;
+        alpha = X[5], X[5] = X[6], X[6] = alpha;
+
+        alpha = X[1] - X[6], beta = X[1] + X[6];
+        X[1] = alpha, X[6] = beta;
+
+        alpha = X[2] - X[4], beta = X[2] + X[4];
+        X[2] = alpha, X[4] = beta;
+
+        alpha = X[3] - X[5], beta = X[3] + X[5];
+        X[3] = alpha, X[5] = beta;
     } else {
         int N = 1 << N_bits;
 
@@ -66,7 +124,63 @@ void FDCT_R_IV(FIX *X, int N_bits)
 
 void FDCT_R_II(FIX *X, int N_bits)
 {
-    if(N_bits > 0) {
+    if(N_bits == 3) {
+        register FIX alpha, beta;
+
+        alpha = X[0] + X[7], beta = X[0] - X[7];
+        X[0] = alpha, X[7] = beta;
+
+        alpha = X[1] + X[6], beta = X[1] - X[6];
+        X[1] = alpha, X[6] = beta;
+
+        alpha = X[2] + X[5], beta = X[2] - X[5];
+        X[2] = alpha, X[5] = beta;
+
+        alpha = X[3] + X[4], beta = X[3] - X[4];
+        X[3] = alpha, X[4] = beta;
+
+        alpha = X[4], X[4] = X[7], X[7] = alpha;
+        alpha = X[5], X[5] = X[6], X[6] = alpha;
+
+        alpha = X[0] + X[3], beta = X[0] - X[3];
+        X[0] = alpha, X[3] = beta;
+
+        alpha = X[1] + X[2], beta = X[1] - X[2];
+        X[1] = alpha, X[2] = beta;
+
+        alpha = FIX_MUL32(X[4], cosine_table1_1024[1][0]) + FIX_MUL32(X[7], sine_table1_1024[1][0]);
+        beta = FIX_MUL32(X[4], sine_table1_1024[1][0]) - FIX_MUL32(X[7], cosine_table1_1024[1][0]);
+        X[4] = alpha, X[7] = beta;
+
+        alpha = FIX_MUL32(X[5], cosine_table1_1024[1][1]) + FIX_MUL32(X[6], sine_table1_1024[1][1]);
+        beta = FIX_MUL32(X[5], sine_table1_1024[1][1]) - FIX_MUL32(X[6], cosine_table1_1024[1][1]);
+        X[5] = alpha, X[6] = -beta;
+
+        alpha = X[2], X[2] = X[3], X[3] = alpha;
+        alpha = X[6], X[6] = X[7], X[7] = alpha;
+
+        alpha = X[0] + X[1], beta = X[0] - X[1];
+        X[0] = alpha, X[1] = beta;
+
+        alpha = FIX_MUL32(X[2], cosine_table1_1024[0][0]) + FIX_MUL32(X[3], sine_table1_1024[0][0]);
+        beta = FIX_MUL32(X[2], sine_table1_1024[0][0]) - FIX_MUL32(X[3], cosine_table1_1024[0][0]);
+        X[2] = alpha, X[3] = beta;
+
+        alpha = X[4] + X[5], beta = X[4] - X[5];
+        X[4] = alpha, X[5] = beta;
+
+        alpha = X[6] + X[7], beta = X[6] - X[7];
+        X[6] = alpha, X[7] = beta;
+
+        X[1] = FIX_MUL32(X[1], 0xB504F333);
+        X[5] = FIX_MUL32(X[5], 0xB504F333);
+        X[7] = FIX_MUL32(X[7], 0xB504F333);
+
+        alpha = X[6], X[6] = X[7], X[7] = alpha;
+
+        alpha = X[5] - X[6], beta = X[5] + X[6];
+        X[5] = alpha, X[6] = beta;
+    } else {
         int N = 1 << N_bits;
 
         for(int i = 0; i < N / 2; i++) {
