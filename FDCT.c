@@ -12,75 +12,82 @@ void FDCT_R_II(FIX *X, int N_bits);
 void FDCT_R_IV(FIX *X, int N_bits)
 {
     if(N_bits == 3) {
-        register FIX alpha, beta;
-        alpha = FIX_MUL32(X[0], cosine_table1_1024[2][0]) + FIX_MUL32(X[7], sine_table1_1024[2][0]);
-        beta = FIX_MUL32(X[0], sine_table1_1024[2][0]) - FIX_MUL32(X[7], cosine_table1_1024[2][0]);
+        register FIX temp;
 
-        X[0] = alpha, X[7] = beta;
+//N=8 DCT-IV butterfly
+        temp = FIX_MUL32(X[0], cosine_table1_1024[2][0]) + FIX_MUL32(X[7], sine_table1_1024[2][0]);
+        X[7] = FIX_MUL32(X[0], sine_table1_1024[2][0]) - FIX_MUL32(X[7], cosine_table1_1024[2][0]);
+        X[0] = temp;
 
-        alpha = FIX_MUL32(X[1], cosine_table1_1024[2][1]) + FIX_MUL32(X[6], sine_table1_1024[2][1]);
-        beta = FIX_MUL32(X[1], sine_table1_1024[2][1]) - FIX_MUL32(X[6], cosine_table1_1024[2][1]);
+        temp = FIX_MUL32(X[1], cosine_table1_1024[2][1]) + FIX_MUL32(X[6], sine_table1_1024[2][1]);
+        X[6] = -(FIX_MUL32(X[1], sine_table1_1024[2][1]) - FIX_MUL32(X[6], cosine_table1_1024[2][1]));
+        X[1] = temp;
 
-        X[1] = alpha, X[6] = -beta;
+        temp = FIX_MUL32(X[2], cosine_table1_1024[2][2]) + FIX_MUL32(X[5], sine_table1_1024[2][2]);
+        X[5] = FIX_MUL32(X[2], sine_table1_1024[2][2]) - FIX_MUL32(X[5], cosine_table1_1024[2][2]);
+        X[2] = temp;
 
-        alpha = FIX_MUL32(X[2], cosine_table1_1024[2][2]) + FIX_MUL32(X[5], sine_table1_1024[2][2]);
-        beta = FIX_MUL32(X[2], sine_table1_1024[2][2]) - FIX_MUL32(X[5], cosine_table1_1024[2][2]);
+        temp = FIX_MUL32(X[3], cosine_table1_1024[2][3]) + FIX_MUL32(X[4], sine_table1_1024[2][3]);
+        X[4] = -(FIX_MUL32(X[3], sine_table1_1024[2][3]) - FIX_MUL32(X[4], cosine_table1_1024[2][3]));
+        X[3] = temp;
 
-        X[2] = alpha, X[5] = beta;
+//N=4 DCT-II butterfly
+        temp = X[0] - X[3];
+        X[0] += X[3];
+        X[3] = temp;
 
-        alpha = FIX_MUL32(X[3], cosine_table1_1024[2][3]) + FIX_MUL32(X[4], sine_table1_1024[2][3]);
-        beta = FIX_MUL32(X[3], sine_table1_1024[2][3]) - FIX_MUL32(X[4], cosine_table1_1024[2][3]);
+        temp = X[1] - X[2];
+        X[1] += X[2];
+        X[2] = temp;
 
-        X[3] = alpha, X[4] = -beta;
+//N=4 DCT-II butterfly
+        temp = X[7] - X[4];
+        X[4] += X[7];
+        X[7] = temp;
 
-        alpha = X[4], X[4] = X[7], X[7] = alpha;
+        temp = X[6] - X[5];
+        X[5] += X[6];
+        X[6] = temp;
 
-        alpha = X[5], X[5] = X[6], X[6] = alpha;
+//N=2 DCT-II butterfly
+        temp = X[0] - X[1];
+        X[0] += X[1];
+        X[1] = temp;
 
-        alpha = X[0] + X[3], beta = X[0] - X[3];
-        X[0] = alpha, X[3] = beta;
+//N=2 DCT-IV butterfly
+        temp = FIX_MUL32(X[3], cosine_table1_1024[0][0]) + FIX_MUL32(X[2], sine_table1_1024[0][0]);
+        X[3] = FIX_MUL32(X[3], sine_table1_1024[0][0]) - FIX_MUL32(X[2], cosine_table1_1024[0][0]);
+        X[2] = temp;
 
-        alpha = X[1] + X[2], beta = X[1] - X[2];
-        X[1] = alpha, X[2] = beta;
+//N=2 DCT-II butterfly
+        temp = X[4] - X[5];
+        X[4] += X[5];
+        X[5] = temp;
 
-        alpha = X[4] + X[7], beta = X[4] - X[7];
-        X[4] = alpha, X[7] = beta;
+//N=2 DCT-IV butterfly
+        temp = FIX_MUL32(X[7], cosine_table1_1024[0][0]) + FIX_MUL32(X[6], sine_table1_1024[0][0]);
+        X[7] = FIX_MUL32(X[7], sine_table1_1024[0][0]) - FIX_MUL32(X[6], cosine_table1_1024[0][0]);
+        X[6] = temp;
 
-        alpha = X[5] + X[6], beta = X[5] - X[6];
-        X[5] = alpha, X[6] = beta;
-
-        alpha = X[2], X[2] = X[3], X[3] = alpha;
-
-        alpha = X[6], X[6] = X[7], X[7] = alpha;
-
-        alpha = X[0] + X[1], beta = X[0] - X[1];
-        X[0] = alpha, X[1] = beta;
-
-        alpha = FIX_MUL32(X[2], cosine_table1_1024[0][0]) + FIX_MUL32(X[3], sine_table1_1024[0][0]);
-        beta = FIX_MUL32(X[2], sine_table1_1024[0][0]) - FIX_MUL32(X[3], cosine_table1_1024[0][0]);
-        X[2] = alpha, X[3] = beta;
-
-        alpha = X[4] + X[5], beta = X[4] - X[5];
-        X[4] = alpha, X[5] = beta;
-
-        alpha = FIX_MUL32(X[6], cosine_table1_1024[0][0]) + FIX_MUL32(X[7], sine_table1_1024[0][0]);
-        beta = FIX_MUL32(X[6], sine_table1_1024[0][0]) - FIX_MUL32(X[7], cosine_table1_1024[0][0]);
-        X[6] = alpha, X[7] = beta;
-
+//N=1 DCT-IV butterflies
         X[1] = FIX_MUL32(X[1], 0xB504F333);
         X[5] = FIX_MUL32(X[5], 0xB504F333);
 
-        alpha = X[4], X[4] = X[7], X[7] = alpha;
-        alpha = X[5], X[5] = X[6], X[6] = alpha;
+//N=8 DCT-IV post-process
+        temp = X[4], X[4] = X[7], X[7] = temp;
+        temp = X[5], X[5] = X[6], X[6] = temp;
 
-        alpha = X[1] - X[6], beta = X[1] + X[6];
-        X[1] = alpha, X[6] = beta;
+        temp = X[1] - X[6];
+        X[6] += X[1];
+        X[1] = temp;
 
-        alpha = X[2] - X[4], beta = X[2] + X[4];
-        X[2] = alpha, X[4] = beta;
+        temp = X[2] - X[4];
+        X[4] += X[2];
+        X[2] = temp;
 
-        alpha = X[3] - X[5], beta = X[3] + X[5];
-        X[3] = alpha, X[5] = beta;
+        temp = X[3] - X[5];
+        X[5] += X[3];
+        X[3] = temp;
     } else {
         int N = 1 << N_bits;
 
@@ -125,61 +132,74 @@ void FDCT_R_IV(FIX *X, int N_bits)
 void FDCT_R_II(FIX *X, int N_bits)
 {
     if(N_bits == 3) {
-        register FIX alpha, beta;
+        register FIX temp;
 
-        alpha = X[0] + X[7], beta = X[0] - X[7];
-        X[0] = alpha, X[7] = beta;
+//N=8 DCT-II butterfly
+        temp = X[0] - X[7];
+        X[0] += X[7];
+        X[7] = temp;
 
-        alpha = X[1] + X[6], beta = X[1] - X[6];
-        X[1] = alpha, X[6] = beta;
+        temp = X[1] - X[6];
+        X[1] += X[6];
+        X[6] = temp;
 
-        alpha = X[2] + X[5], beta = X[2] - X[5];
-        X[2] = alpha, X[5] = beta;
+        temp = X[2] - X[5];
+        X[2] += X[5];
+        X[5] = temp;
 
-        alpha = X[3] + X[4], beta = X[3] - X[4];
-        X[3] = alpha, X[4] = beta;
+        temp = X[3] - X[4];
+        X[3] += X[4];
+        X[4] = temp;
 
-        alpha = X[4], X[4] = X[7], X[7] = alpha;
-        alpha = X[5], X[5] = X[6], X[6] = alpha;
+//N=4 DCT-II butterfly
+        temp = X[0] - X[3];
+        X[0] += X[3];
+        X[3] = temp;
 
-        alpha = X[0] + X[3], beta = X[0] - X[3];
-        X[0] = alpha, X[3] = beta;
+        temp = X[1] - X[2];
+        X[1] += X[2];
+        X[2] = temp;
 
-        alpha = X[1] + X[2], beta = X[1] - X[2];
-        X[1] = alpha, X[2] = beta;
+//N=4 DCT-IV butterfly
+        temp = FIX_MUL32(X[7], cosine_table1_1024[1][0]) + FIX_MUL32(X[4], sine_table1_1024[1][0]);
+        X[7] = FIX_MUL32(X[7], sine_table1_1024[1][0]) - FIX_MUL32(X[4], cosine_table1_1024[1][0]);
+        X[4] = temp;
 
-        alpha = FIX_MUL32(X[4], cosine_table1_1024[1][0]) + FIX_MUL32(X[7], sine_table1_1024[1][0]);
-        beta = FIX_MUL32(X[4], sine_table1_1024[1][0]) - FIX_MUL32(X[7], cosine_table1_1024[1][0]);
-        X[4] = alpha, X[7] = beta;
+        temp = FIX_MUL32(X[6], cosine_table1_1024[1][1]) + FIX_MUL32(X[5], sine_table1_1024[1][1]);
+        X[6] = -(FIX_MUL32(X[6], sine_table1_1024[1][1]) - FIX_MUL32(X[5], cosine_table1_1024[1][1]));
+        X[5] = temp;
 
-        alpha = FIX_MUL32(X[5], cosine_table1_1024[1][1]) + FIX_MUL32(X[6], sine_table1_1024[1][1]);
-        beta = FIX_MUL32(X[5], sine_table1_1024[1][1]) - FIX_MUL32(X[6], cosine_table1_1024[1][1]);
-        X[5] = alpha, X[6] = -beta;
+//N=2 DCT-II butterfly
+        temp = X[0] - X[1];
+        X[0] += X[1];
+        X[1] = temp;
 
-        alpha = X[2], X[2] = X[3], X[3] = alpha;
-        alpha = X[6], X[6] = X[7], X[7] = alpha;
+//N=2 DCT-IV butterfly
+        temp = FIX_MUL32(X[3], cosine_table1_1024[0][0]) + FIX_MUL32(X[2], sine_table1_1024[0][0]);
+        X[3] = FIX_MUL32(X[3], sine_table1_1024[0][0]) - FIX_MUL32(X[2], cosine_table1_1024[0][0]);
+        X[2] = temp;
 
-        alpha = X[0] + X[1], beta = X[0] - X[1];
-        X[0] = alpha, X[1] = beta;
+//N=2 DCT-II butterfly
+        temp = X[4] - X[5];
+        X[4] += X[5];
+        X[5] = temp;
 
-        alpha = FIX_MUL32(X[2], cosine_table1_1024[0][0]) + FIX_MUL32(X[3], sine_table1_1024[0][0]);
-        beta = FIX_MUL32(X[2], sine_table1_1024[0][0]) - FIX_MUL32(X[3], cosine_table1_1024[0][0]);
-        X[2] = alpha, X[3] = beta;
+//N=2 DCT-II butterfly
+        temp = X[7] - X[6];
+        X[6] += X[7];
+        X[7] = temp;
 
-        alpha = X[4] + X[5], beta = X[4] - X[5];
-        X[4] = alpha, X[5] = beta;
-
-        alpha = X[6] + X[7], beta = X[6] - X[7];
-        X[6] = alpha, X[7] = beta;
-
+//N=1 DCT-IV butterflies
         X[1] = FIX_MUL32(X[1], 0xB504F333);
         X[5] = FIX_MUL32(X[5], 0xB504F333);
         X[7] = FIX_MUL32(X[7], 0xB504F333);
 
-        alpha = X[6], X[6] = X[7], X[7] = alpha;
+//N=4 DCT-IV post-process
+        temp = X[6], X[6] = X[7], X[7] = temp;
 
-        alpha = X[5] - X[6], beta = X[5] + X[6];
-        X[5] = alpha, X[6] = beta;
+        temp = X[5] - X[6];
+        X[6] += X[5];
+        X[5] = temp;
     } else {
         int N = 1 << N_bits;
 

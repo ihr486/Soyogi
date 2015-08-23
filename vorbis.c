@@ -103,8 +103,6 @@ static void decode_setup_header(void)
     INFO("%d bytes of setup stack consumed.\n", setup_get_head());
 }
 
-#define MS_ELAPSED(t) ((double)(clock() - t) / (double)CLOCKS_PER_SEC * 1000.0)
-
 void decode_audio_packet(void)
 {
     double FDCT_time = 0, residue_time = 0;
@@ -233,11 +231,11 @@ void decode_audio_packet(void)
     double packet_time = MS_ELAPSED(initial_clock);
     //printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 
-    if(previous_window_flag && this_window_flag) {
+    /*if(previous_window_flag && this_window_flag) {
         fwrite(audio, sizeof(int16_t) * V_N, 1, sox);
     } else {
         fwrite(audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, 1, sox);
-    }
+    }*/
 }
 
 void decode_packet(void)

@@ -35,4 +35,6 @@ typedef int32_t FIX;
 
 #define FIX_MUL32(x, y) (FIX)(((int64_t)x * (int64_t)y) >> 32)
 
+#define MS_ELAPSED(t) ((double)(clock() - t) / (double)CLOCKS_PER_SEC * 1000.0)
+
 #endif

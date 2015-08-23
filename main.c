@@ -61,12 +61,18 @@ int main(int argc, const char *argv[])
 
     g_source = fp;
 
+    clock_t initial_clock = clock();
+
     int ret;
     if(!(ret = setjmp(jump_env))) {
         decode();
     } else {
         printf("Critical error detected during decode process.\n");
     }
+
+    double decode_time = MS_ELAPSED(initial_clock);
+
+    printf("Total decode time = %lf\n", decode_time);
 
     pclose(sox);
     fclose(fp);
