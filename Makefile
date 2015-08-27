@@ -8,7 +8,7 @@ OBJS := $(COBJS)
 BIN := decoder
 
 CC := gcc
-CFLAGS := -Wall -Wextra -std=c99 -O2
+CFLAGS := -Wall -Wextra -std=c99 -O2 -DFIXED_POINT
 LDFLAGS := -lm
 
 .PHONY: all check clean
@@ -24,5 +24,5 @@ clean:
 $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-%.o: %.c $(HDRS)
+%.o: %.c $(HDRS) Makefile
 	$(CC) $(CFLAGS) -c -o $@ $<

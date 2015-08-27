@@ -31,4 +31,19 @@ extern jmp_buf jump_env;
 #define ERROR_VORBIS 10
 #define DECODE_FINISHED 11
 
+#ifdef FIXED_POINT
+typedef int32_t DATA_TYPE;
+typedef uint32_t COEFF_TYPE;
+
+#define MUL(x, y) (((int64_t)(x) * (int64_t)(y)) >> 32)
+#else
+typedef float DATA_TYPE;
+typedef float COEFF_TYPE;
+
+#define MUL(x, y) ((x) * (y))
+#endif
+
+double get_us(void);
+double get_counter_freq(void);
+
 #endif

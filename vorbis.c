@@ -103,13 +103,11 @@ static void decode_setup_header(void)
     INFO("%d bytes of setup stack consumed.\n", setup_get_head());
 }
 
-#define MS_ELAPSED(t) ((double)(clock() - t) / (double)CLOCKS_PER_SEC * 1000.0)
-
 void decode_audio_packet(void)
 {
     double FDCT_time = 0, residue_time = 0;
 
-    clock_t initial_clock = clock();
+    double initial_clock = get_us();
 
     int mode_number = read_unsigned_value_PF(ilog(mode_num - 1));
 
@@ -159,11 +157,11 @@ void decode_audio_packet(void)
             vector_list[i].do_not_decode_flag = vector_list[i].no_residue;
         }
 
-        clock_t residue_entry = clock();
+        double residue_entry = get_us();
 
         decode_residue(V_N_bits, residue_number, 0, audio_channels);
 
-        residue_time += MS_ELAPSED(residue_entry);
+        residue_time += get_us() - residue_entry;
     } else {
         ERROR(ERROR_VORBIS, "Multiple submaps are not supported yet.\n");
     }
@@ -173,27 +171,31 @@ void decode_audio_packet(void)
     }
 
     for(int i = 0; i < audio_channels; i++) {
-        float *v = setup_ref(vector_list[i].body);
+        DATA_TYPE *v = setup_ref(vector_list[i].body);
 
         if(vector_list[i].nonzero) {
             synthesize_floor1(V_N, i);
         }
 
-        clock_t FDCT_entry = clock();
+        double FDCT_entry = get_us();
 
         FDCT_IV(v, V_N_bits);
 
-        FDCT_time += MS_ELAPSED(FDCT_entry);
+        FDCT_time += get_us() - FDCT_entry;
 
         for(int j = 0; j < V_N; j++) {
-            v[j] *= 3000.f;
+#ifdef FIXED_POINT
+            v[j] /= 20;
+#else
+            v[j] *= 3000.0f;
+#endif
         }
 
         overlap_add(V_N_bits, i, previous_window_flag);
     }
 
-    float *v_out = setup_ref(vector_list[0].body);
-    float *rh = setup_ref(vector_list[0].right_hand);
+    DATA_TYPE *v_out = setup_ref(vector_list[0].body);
+    DATA_TYPE *rh = setup_ref(vector_list[0].right_hand);
     if(previous_window_flag && vector_list[0].next_window_flag) {
         for(int i = 0; i < V_N / 2; i++) {
             audio[i + V_N / 2] = (int16_t)rh[i];
@@ -230,7 +232,7 @@ void decode_audio_packet(void)
     }
     setup_set_head(setup_origin);
 
-    double packet_time = MS_ELAPSED(initial_clock);
+    double packet_time = get_us() - initial_clock;
     printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 
     if(previous_window_flag && this_window_flag) {

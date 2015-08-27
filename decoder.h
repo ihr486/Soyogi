@@ -17,6 +17,18 @@
 #include <setjmp.h>
 #include <time.h>
 
+#include "misc.h"
+#include "vorbis_helper.h"
+#include "setup.h"
+#include "mode.h"
+#include "mapping.h"
+#include "floor1.h"
+#include "residue.h"
+#include "vector.h"
+#include "codebook.h"
+#include "vorbis_table.h"
+#include "ogg.h"
+
 //#include <pulse/pulseaudio.h>
 //#include <pulse/simple.h>
 
@@ -31,25 +43,13 @@ extern bool EOF_flag;
 
 void decode_packet(void);
 
-void FDCT_IV(float *X, int V_N_bits);
+void FDCT_IV(DATA_TYPE *X, int V_N_bits);
 
 extern uint8_t audio_channels;
 extern uint16_t B_N_bits[2], B_N[2];
 
 extern FILE *sox;
 //extern pa_simple *pulse_ctx;
-
-#include "misc.h"
-#include "vorbis_helper.h"
-#include "setup.h"
-#include "mode.h"
-#include "mapping.h"
-#include "floor1.h"
-#include "residue.h"
-#include "vector.h"
-#include "codebook.h"
-#include "vorbis_table.h"
-#include "ogg.h"
 
 #define SECTOR_SIZE (2048)
 

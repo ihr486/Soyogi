@@ -203,6 +203,8 @@ static void decode_codebook(int index)
         header->minimum_value = read_float32();
         header->delta_value = read_float32();
 
+        //printf("Min = %d, Delta = %d\n", header->minimum_value, header->delta_value);
+
         uint8_t value_bits = read_unsigned_value(4) + 1;
         header->sequence_p = read_unsigned_value(1);
 
@@ -268,7 +270,7 @@ int16_t __attribute__((hot)) lookup_scalar(int index)
     return prefetch_buffer_exhausted() ? -1 : ret;
 }
 
-int __attribute__((hot)) lookup_vector(float *v, int offset, int index, int step, int period)
+int __attribute__((hot)) lookup_vector(DATA_TYPE *v, int offset, int index, int step, int period)
 {
     codebook_t *cb = &codebook_list[index];
     VQ_header_t *vq = setup_ref(cb->lookup);
@@ -279,11 +281,11 @@ int __attribute__((hot)) lookup_vector(float *v, int offset, int index, int step
 
     switch(cb->lookup_type) {
     case 1: {
-        float last = 0;
+        DATA_TYPE last = 0;
         int index_divisor = 1;
         for(int i = 0; i < cb->dimension; i++) {
             int multiplicand_offset = (lookup_offset / index_divisor) % vq->lookup_values;
-            float element = 0.0f;
+            DATA_TYPE element = 0;
 
             if(vq->lookup_mode == 8) {
                 element = setup_get_byte(vq->table + multiplicand_offset) * vq->delta_value + vq->minimum_value + last;
@@ -300,10 +302,10 @@ int __attribute__((hot)) lookup_vector(float *v, int offset, int index, int step
         }
     } break;
     case 2: {
-        float last = 0;
+        DATA_TYPE last = 0;
         int multiplicand_offset = lookup_offset * cb->dimension;
         for(int i = 0; i < cb->dimension; i++) {
-            float element = 0.0f;
+            DATA_TYPE element = 0;
 
             switch(vq->lookup_mode) {
             case 8:
