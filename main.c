@@ -45,6 +45,8 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
+    printf("Performance Counter running at %lf Hz\n", get_counter_freq());
+
     FILE *fp = fopen(argv[1], "rb");
     if(!fp) {
         fprintf(stderr, "Failed to open %s.\n", argv[1]);
@@ -53,7 +55,7 @@ int main(int argc, const char *argv[])
 
     INFO("Playing %s.\n", argv[1]);
 
-    sox = popen("play -t raw -r 44100 -e s -b 16 - 2>/dev/null", "w");
+    sox = popen("play -t raw -r 44100 -e s -b 16 -c 1 - 2>/dev/null", "w");
     if(!sox) {
         fprintf(stderr, "Failed to connect to sox.\n");
         return 1;
@@ -61,7 +63,7 @@ int main(int argc, const char *argv[])
 
     g_source = fp;
 
-    clock_t initial_clock = clock();
+    double initial_clock = get_us();
 
     int ret;
     if(!(ret = setjmp(jump_env))) {
@@ -70,9 +72,11 @@ int main(int argc, const char *argv[])
         printf("Critical error detected during decode process.\n");
     }
 
-    double decode_time = MS_ELAPSED(initial_clock);
+    double decode_time = get_us() - initial_clock;
 
     printf("Total decode time = %lf\n", decode_time);
+
+    fflush(sox);
 
     pclose(sox);
     fclose(fp);

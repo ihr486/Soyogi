@@ -43,6 +43,7 @@ typedef float COEFF_TYPE;
 #define MUL(x, y) ((x) * (y))
 #endif
 
-#define MS_ELAPSED(t) ((double)(clock() - t) / (double)CLOCKS_PER_SEC * 1000.0)
+double get_us(void);
+double get_counter_freq(void);
 
 #endif
