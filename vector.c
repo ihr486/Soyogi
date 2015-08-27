@@ -65,7 +65,7 @@ void apply_window(DATA_TYPE *A, DATA_TYPE *B, int V_N_bits)
 {
     int V_N = 1 << V_N_bits;
 
-    const COEFF_TYPE *win = vwin32_2048[V_N_bits - 5];
+    const UNSIGNED_COEFF_TYPE *win = vwin32_2048[V_N_bits - 5];
 
     for(int i = 0; i < V_N / 2; i++) {
         DATA_TYPE alpha = -MUL(A[V_N / 2 - 1 - i], win[i]) - MUL(B[i], win[V_N - 1 - i]);

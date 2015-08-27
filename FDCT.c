@@ -92,8 +92,8 @@ void FDCT_R_IV(DATA_TYPE *X, int N_bits)
         int N = 1 << N_bits;
 
         for(int i = 0; i < N / 2; i++) {
-            COEFF_TYPE c = cosine_table0_1024[N_bits][i];
-            COEFF_TYPE s = sine_table0_1024[N_bits][i];
+            UNSIGNED_COEFF_TYPE c = cosine_table0_1024[N_bits][i];
+            UNSIGNED_COEFF_TYPE s = sine_table0_1024[N_bits][i];
 
             DATA_TYPE alpha = MUL(X[i], c) + MUL(X[N - 1 - i], s);
             DATA_TYPE beta = MUL(X[i], s) - MUL(X[N - 1 - i], c);

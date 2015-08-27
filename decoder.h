@@ -45,6 +45,8 @@ void decode_packet(void);
 
 void FDCT_IV(DATA_TYPE *X, int V_N_bits);
 
+void feed_SRC(DATA_TYPE x);
+
 extern uint8_t audio_channels;
 extern uint16_t B_N_bits[2], B_N[2];
 

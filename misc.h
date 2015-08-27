@@ -33,12 +33,14 @@ extern jmp_buf jump_env;
 
 #ifdef FIXED_POINT
 typedef int32_t DATA_TYPE;
-typedef uint32_t COEFF_TYPE;
+typedef uint32_t UNSIGNED_COEFF_TYPE;
+typedef int32_t SIGNED_COEFF_TYPE;
 
 #define MUL(x, y) (((int64_t)(x) * (int64_t)(y)) >> 32)
 #else
 typedef float DATA_TYPE;
-typedef float COEFF_TYPE;
+typedef float UNSIGNED_COEFF_TYPE;
+typedef float SIGNED_COEFF_TYPE;
 
 #define MUL(x, y) ((x) * (y))
 #endif

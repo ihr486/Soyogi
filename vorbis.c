@@ -5,7 +5,7 @@ uint32_t audio_sample_rate = 0;
 uint32_t bitrate_nominal = 0;
 uint16_t B_N_bits[2] = {0, 0}, B_N[2] = {0, 0};
 
-int16_t *audio = NULL;
+//int16_t *audio = NULL;
 
 static void decode_identification_header(void)
 {
@@ -30,7 +30,7 @@ static void decode_identification_header(void)
         ERROR(ERROR_VORBIS, "Unsupported greater blocksizes: %u/%u.\n", B_N[0], B_N[1]);
     }
 
-    audio = (int16_t *)malloc(sizeof(int16_t) * B_N[1] / 2);
+    //audio = (int16_t *)malloc(sizeof(int16_t) * B_N[1] / 2);
 
     if(!read_unsigned_value(1))
         ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
@@ -184,9 +184,7 @@ void decode_audio_packet(void)
         FDCT_time += get_us() - FDCT_entry;
 
         for(int j = 0; j < V_N; j++) {
-#ifdef FIXED_POINT
-            v[j] /= 20;
-#else
+#ifndef FIXED_POINT
             v[j] *= 3000.0f;
 #endif
         }
@@ -196,7 +194,7 @@ void decode_audio_packet(void)
 
     DATA_TYPE *v_out = setup_ref(vector_list[0].body);
     DATA_TYPE *rh = setup_ref(vector_list[0].right_hand);
-    if(previous_window_flag && vector_list[0].next_window_flag) {
+    /*if(previous_window_flag && vector_list[0].next_window_flag) {
         for(int i = 0; i < V_N / 2; i++) {
             audio[i + V_N / 2] = (int16_t)rh[i];
             audio[i] = (int16_t)v_out[i + V_N / 2];
@@ -223,9 +221,40 @@ void decode_audio_packet(void)
                 audio[B_N[1] / 4 + i] = (int16_t)rh[i];
             }
         }
+    }*/
+
+    if(previous_window_flag && vector_list[0].next_window_flag) {
+        for(int i = 0; i < V_N / 2; i++) {
+            feed_SRC(v_out[i + V_N / 2]);
+        }
+        for(int i = 0; i < V_N / 2; i++) {
+            feed_SRC(rh[i]);
+        }
+    } else {
+        if(!previous_window_flag) {
+            for(int i = 0; i < B_N[0] / 4; i++) {
+                feed_SRC(v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 + i]);
+            }
+            for(int i = 0; i < B_N[0] / 4; i++) {
+                feed_SRC(rh[i]);
+            }
+            for(int i = 0; i < (B_N[1] - B_N[0]) / 4; i++) {
+                feed_SRC(-v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 - 1 - i]);
+            }
+        } else if(!vector_list[0].next_window_flag) {
+            for(int i = 0; i < (B_N[1] - B_N[0]) / 4; i++) {
+                feed_SRC(-rh[B_N[1] / 4 - 1 - i]);
+            }
+            for(int i = 0; i < B_N[0] / 4; i++) {
+                feed_SRC(v_out[i + B_N[0] / 4]);
+            }
+            for(int i = 0; i < B_N[0] / 4; i++) {
+                feed_SRC(rh[i]);
+            }
+        }
     }
 
-    int this_window_flag = vector_list[0].next_window_flag;
+    //int this_window_flag = vector_list[0].next_window_flag;
 
     for(int i = 0; i < audio_channels; i++) {
         cache_righthand(V_N, i, next_window_flag);
@@ -235,11 +264,11 @@ void decode_audio_packet(void)
     double packet_time = get_us() - initial_clock;
     printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 
-    if(previous_window_flag && this_window_flag) {
+    /*if(previous_window_flag && this_window_flag) {
         fwrite(audio, sizeof(int16_t) * V_N, 1, sox);
     } else {
         fwrite(audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, 1, sox);
-    }
+    }*/
 }
 
 void decode_packet(void)
