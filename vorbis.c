@@ -185,7 +185,7 @@ void decode_audio_packet(void)
 
         for(int j = 0; j < V_N; j++) {
 #ifndef FIXED_POINT
-            v[j] *= 3000.0f;
+            v[j] *= 16000.0f;
 #endif
         }
 

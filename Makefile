@@ -8,7 +8,7 @@ OBJS := $(COBJS)
 BIN := decoder
 
 CC := gcc
-CFLAGS := -Wall -Wextra -std=c99 -O2 -DFIXED_POINT
+CFLAGS := -Wall -Wextra -std=c99 -O2
 LDFLAGS := -lm
 
 .PHONY: all check clean
