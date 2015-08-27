@@ -197,7 +197,7 @@ void synthesize_floor1(int V_N, int channel)
     floor1_header_t *floor = &floor_list[vector->floor];
     floor1_coord_t *coord_list = setup_ref(vector->coord_list);
 
-    FIX *v = setup_ref(vector->body);
+    DATA_TYPE *v = setup_ref(vector->body);
 
     int hx = 0, hy = 0, lx = 0;
     int ly = coord_list[0].Y * floor->multiplier;
@@ -218,7 +218,7 @@ void synthesize_floor1(int V_N, int channel)
 
             ady -= abs(base) * adx;
 
-            v[x] = FIX_MUL32(v[x], floor1_inverse_dB_table[y]);
+            v[x] = MUL(v[x], floor1_inverse_dB_table[y]);
 
             for(x = lx + 1; x < min(hx, V_N); x++) {
                 err += ady;
@@ -229,7 +229,7 @@ void synthesize_floor1(int V_N, int channel)
                     y += base;
                 }
 
-                v[x] = FIX_MUL32(v[x], floor1_inverse_dB_table[y]);
+                v[x] = MUL(v[x], floor1_inverse_dB_table[y]);
             }
 
             lx = hx;
@@ -237,6 +237,6 @@ void synthesize_floor1(int V_N, int channel)
         }
     }
     for(; hx < V_N; hx++) {
-        v[hx] = FIX_MUL32(v[hx], floor1_inverse_dB_table[hy]);
+        v[hx] = MUL(v[hx], floor1_inverse_dB_table[hy]);
     }
 }

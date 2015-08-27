@@ -24,5 +24,5 @@ clean:
 $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-%.o: %.c $(HDRS)
+%.o: %.c $(HDRS) Makefile
 	$(CC) $(CFLAGS) -c -o $@ $<

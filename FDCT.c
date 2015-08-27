@@ -1,34 +1,34 @@
 #include "decoder.h"
 
-inline void swap(FIX *x, FIX *y)
+inline void swap(DATA_TYPE *x, DATA_TYPE *y)
 {
-    FIX t = *x;
+    DATA_TYPE t = *x;
     *x = *y;
     *y = t;
 }
 
-void FDCT_R_II(FIX *X, int N_bits);
+void FDCT_R_II(DATA_TYPE *X, int N_bits);
 
-void FDCT_R_IV(FIX *X, int N_bits)
+void FDCT_R_IV(DATA_TYPE *X, int N_bits)
 {
     if(N_bits == 3) {
-        register FIX temp;
+        register DATA_TYPE temp;
 
 //N=8 DCT-IV butterfly
-        temp = FIX_MUL32(X[0], cosine_table1_1024[2][0]) + FIX_MUL32(X[7], sine_table1_1024[2][0]);
-        X[7] = FIX_MUL32(X[0], sine_table1_1024[2][0]) - FIX_MUL32(X[7], cosine_table1_1024[2][0]);
+        temp = MUL(X[0], cosine_table0_1024[3][0]) + MUL(X[7], sine_table0_1024[3][0]);
+        X[7] = MUL(X[0], sine_table0_1024[3][0]) - MUL(X[7], cosine_table0_1024[3][0]);
         X[0] = temp;
 
-        temp = FIX_MUL32(X[1], cosine_table1_1024[2][1]) + FIX_MUL32(X[6], sine_table1_1024[2][1]);
-        X[6] = -(FIX_MUL32(X[1], sine_table1_1024[2][1]) - FIX_MUL32(X[6], cosine_table1_1024[2][1]));
+        temp = MUL(X[1], cosine_table0_1024[3][1]) + MUL(X[6], sine_table0_1024[3][1]);
+        X[6] = -(MUL(X[1], sine_table0_1024[3][1]) - MUL(X[6], cosine_table0_1024[3][1]));
         X[1] = temp;
 
-        temp = FIX_MUL32(X[2], cosine_table1_1024[2][2]) + FIX_MUL32(X[5], sine_table1_1024[2][2]);
-        X[5] = FIX_MUL32(X[2], sine_table1_1024[2][2]) - FIX_MUL32(X[5], cosine_table1_1024[2][2]);
+        temp = MUL(X[2], cosine_table0_1024[3][2]) + MUL(X[5], sine_table0_1024[3][2]);
+        X[5] = MUL(X[2], sine_table0_1024[3][2]) - MUL(X[5], cosine_table0_1024[3][2]);
         X[2] = temp;
 
-        temp = FIX_MUL32(X[3], cosine_table1_1024[2][3]) + FIX_MUL32(X[4], sine_table1_1024[2][3]);
-        X[4] = -(FIX_MUL32(X[3], sine_table1_1024[2][3]) - FIX_MUL32(X[4], cosine_table1_1024[2][3]));
+        temp = MUL(X[3], cosine_table0_1024[3][3]) + MUL(X[4], sine_table0_1024[3][3]);
+        X[4] = -(MUL(X[3], sine_table0_1024[3][3]) - MUL(X[4], cosine_table0_1024[3][3]));
         X[3] = temp;
 
 //N=4 DCT-II butterfly
@@ -55,8 +55,8 @@ void FDCT_R_IV(FIX *X, int N_bits)
         X[1] = temp;
 
 //N=2 DCT-IV butterfly
-        temp = FIX_MUL32(X[3], cosine_table1_1024[0][0]) + FIX_MUL32(X[2], sine_table1_1024[0][0]);
-        X[3] = FIX_MUL32(X[3], sine_table1_1024[0][0]) - FIX_MUL32(X[2], cosine_table1_1024[0][0]);
+        temp = MUL(X[3], cosine_table0_1024[1][0]) + MUL(X[2], sine_table0_1024[1][0]);
+        X[3] = MUL(X[3], sine_table0_1024[1][0]) - MUL(X[2], cosine_table0_1024[1][0]);
         X[2] = temp;
 
 //N=2 DCT-II butterfly
@@ -65,13 +65,13 @@ void FDCT_R_IV(FIX *X, int N_bits)
         X[5] = temp;
 
 //N=2 DCT-IV butterfly
-        temp = FIX_MUL32(X[7], cosine_table1_1024[0][0]) + FIX_MUL32(X[6], sine_table1_1024[0][0]);
-        X[7] = FIX_MUL32(X[7], sine_table1_1024[0][0]) - FIX_MUL32(X[6], cosine_table1_1024[0][0]);
+        temp = MUL(X[7], cosine_table0_1024[1][0]) + MUL(X[6], sine_table0_1024[1][0]);
+        X[7] = MUL(X[7], sine_table0_1024[1][0]) - MUL(X[6], cosine_table0_1024[1][0]);
         X[6] = temp;
 
 //N=1 DCT-IV butterflies
-        X[1] = FIX_MUL32(X[1], 0xB504F333);
-        X[5] = FIX_MUL32(X[5], 0xB504F333);
+        X[1] = MUL(X[1], cosine_table0_1024[0][0]);
+        X[5] = MUL(X[5], cosine_table0_1024[0][0]);
 
 //N=8 DCT-IV post-process
         temp = X[4], X[4] = X[7], X[7] = temp;
@@ -92,11 +92,11 @@ void FDCT_R_IV(FIX *X, int N_bits)
         int N = 1 << N_bits;
 
         for(int i = 0; i < N / 2; i++) {
-            uint32_t c = cosine_table1_1024[N_bits - 1][i];
-            uint32_t s = sine_table1_1024[N_bits - 1][i];
+            COEFF_TYPE c = cosine_table0_1024[N_bits][i];
+            COEFF_TYPE s = sine_table0_1024[N_bits][i];
 
-            FIX alpha = FIX_MUL32(X[i], c) + FIX_MUL32(X[N - 1 - i], s);
-            FIX beta = FIX_MUL32(X[i], s) - FIX_MUL32(X[N - 1 - i], c);
+            DATA_TYPE alpha = MUL(X[i], c) + MUL(X[N - 1 - i], s);
+            DATA_TYPE beta = MUL(X[i], s) - MUL(X[N - 1 - i], c);
 
             X[i] = alpha;
             X[N - 1 - i] = beta;
@@ -120,8 +120,8 @@ void FDCT_R_IV(FIX *X, int N_bits)
         for(int i = 1; i < N / 2; i++) {
             int r = reverse_2048[(reverse_2048[i] >> (11 - N_bits)) - 1] >> (11 - N_bits);
 
-            FIX alpha = X[i] - X[r];
-            FIX beta = X[i] + X[r];
+            DATA_TYPE alpha = X[i] - X[r];
+            DATA_TYPE beta = X[i] + X[r];
 
             X[i] = alpha;
             X[r] = beta;
@@ -129,10 +129,10 @@ void FDCT_R_IV(FIX *X, int N_bits)
     }
 }
 
-void FDCT_R_II(FIX *X, int N_bits)
+void FDCT_R_II(DATA_TYPE *X, int N_bits)
 {
     if(N_bits == 3) {
-        register FIX temp;
+        register DATA_TYPE temp;
 
 //N=8 DCT-II butterfly
         temp = X[0] - X[7];
@@ -161,12 +161,12 @@ void FDCT_R_II(FIX *X, int N_bits)
         X[2] = temp;
 
 //N=4 DCT-IV butterfly
-        temp = FIX_MUL32(X[7], cosine_table1_1024[1][0]) + FIX_MUL32(X[4], sine_table1_1024[1][0]);
-        X[7] = FIX_MUL32(X[7], sine_table1_1024[1][0]) - FIX_MUL32(X[4], cosine_table1_1024[1][0]);
+        temp = MUL(X[7], cosine_table0_1024[2][0]) + MUL(X[4], sine_table0_1024[2][0]);
+        X[7] = MUL(X[7], sine_table0_1024[2][0]) - MUL(X[4], cosine_table0_1024[2][0]);
         X[4] = temp;
 
-        temp = FIX_MUL32(X[6], cosine_table1_1024[1][1]) + FIX_MUL32(X[5], sine_table1_1024[1][1]);
-        X[6] = -(FIX_MUL32(X[6], sine_table1_1024[1][1]) - FIX_MUL32(X[5], cosine_table1_1024[1][1]));
+        temp = MUL(X[6], cosine_table0_1024[2][1]) + MUL(X[5], sine_table0_1024[2][1]);
+        X[6] = -(MUL(X[6], sine_table0_1024[2][1]) - MUL(X[5], cosine_table0_1024[2][1]));
         X[5] = temp;
 
 //N=2 DCT-II butterfly
@@ -175,8 +175,8 @@ void FDCT_R_II(FIX *X, int N_bits)
         X[1] = temp;
 
 //N=2 DCT-IV butterfly
-        temp = FIX_MUL32(X[3], cosine_table1_1024[0][0]) + FIX_MUL32(X[2], sine_table1_1024[0][0]);
-        X[3] = FIX_MUL32(X[3], sine_table1_1024[0][0]) - FIX_MUL32(X[2], cosine_table1_1024[0][0]);
+        temp = MUL(X[3], cosine_table0_1024[1][0]) + MUL(X[2], sine_table0_1024[1][0]);
+        X[3] = MUL(X[3], sine_table0_1024[1][0]) - MUL(X[2], cosine_table0_1024[1][0]);
         X[2] = temp;
 
 //N=2 DCT-II butterfly
@@ -190,9 +190,9 @@ void FDCT_R_II(FIX *X, int N_bits)
         X[7] = temp;
 
 //N=1 DCT-IV butterflies
-        X[1] = FIX_MUL32(X[1], 0xB504F333);
-        X[5] = FIX_MUL32(X[5], 0xB504F333);
-        X[7] = FIX_MUL32(X[7], 0xB504F333);
+        X[1] = MUL(X[1], cosine_table0_1024[0][0]);
+        X[5] = MUL(X[5], cosine_table0_1024[0][0]);
+        X[7] = MUL(X[7], cosine_table0_1024[0][0]);
 
 //N=4 DCT-IV post-process
         temp = X[6], X[6] = X[7], X[7] = temp;
@@ -204,8 +204,8 @@ void FDCT_R_II(FIX *X, int N_bits)
         int N = 1 << N_bits;
 
         for(int i = 0; i < N / 2; i++) {
-            FIX alpha = X[i] + X[N - 1 - i];
-            FIX beta = X[i] - X[N - 1 - i];
+            DATA_TYPE alpha = X[i] + X[N - 1 - i];
+            DATA_TYPE beta = X[i] - X[N - 1 - i];
 
             X[i] = alpha;
             X[N - 1 - i] = beta;
@@ -220,7 +220,7 @@ void FDCT_R_II(FIX *X, int N_bits)
     }
 }
 
-void FDCT_IV(FIX *X, int N_bits)
+void FDCT_IV(DATA_TYPE *X, int N_bits)
 {
     int N = 1 << N_bits;
     

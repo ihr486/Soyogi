@@ -43,7 +43,7 @@ extern bool EOF_flag;
 
 void decode_packet(void);
 
-void FDCT_IV(FIX *X, int V_N_bits);
+void FDCT_IV(DATA_TYPE *X, int V_N_bits);
 
 extern uint8_t audio_channels;
 extern uint16_t B_N_bits[2], B_N[2];

@@ -171,7 +171,7 @@ void decode_audio_packet(void)
     }
 
     for(int i = 0; i < audio_channels; i++) {
-        FIX *v = setup_ref(vector_list[i].body);
+        DATA_TYPE *v = setup_ref(vector_list[i].body);
 
         if(vector_list[i].nonzero) {
             synthesize_floor1(V_N, i);
@@ -184,14 +184,18 @@ void decode_audio_packet(void)
         FDCT_time += MS_ELAPSED(FDCT_entry);
 
         for(int j = 0; j < V_N; j++) {
+#ifdef FIXED_POINT
             v[j] /= 20;
+#else
+            v[j] *= 3000.0f;
+#endif
         }
 
         overlap_add(V_N_bits, i, previous_window_flag);
     }
 
-    FIX *v_out = setup_ref(vector_list[0].body);
-    FIX *rh = setup_ref(vector_list[0].right_hand);
+    DATA_TYPE *v_out = setup_ref(vector_list[0].body);
+    DATA_TYPE *rh = setup_ref(vector_list[0].right_hand);
     if(previous_window_flag && vector_list[0].next_window_flag) {
         for(int i = 0; i < V_N / 2; i++) {
             audio[i + V_N / 2] = (int16_t)rh[i];
@@ -229,13 +233,13 @@ void decode_audio_packet(void)
     setup_set_head(setup_origin);
 
     double packet_time = MS_ELAPSED(initial_clock);
-    //printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
+    printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 
-    /*if(previous_window_flag && this_window_flag) {
+    if(previous_window_flag && this_window_flag) {
         fwrite(audio, sizeof(int16_t) * V_N, 1, sox);
     } else {
         fwrite(audio, sizeof(int16_t) * (B_N[0] + B_N[1]) / 4, 1, sox);
-    }*/
+    }
 }
 
 void decode_packet(void)

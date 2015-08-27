@@ -7,22 +7,22 @@ void setup_vectors(void)
     vector_list = setup_ref(setup_allocate_natural(sizeof(vector_t) * audio_channels));
 
     for(int i = 0; i < audio_channels; i++) {
-        vector_list[i].right_hand = setup_allocate_natural(sizeof(FIX) * B_N[1] / 4);
+        vector_list[i].right_hand = setup_allocate_natural(sizeof(DATA_TYPE) * B_N[1] / 4);
         vector_list[i].next_window_flag = 1;
 
-        FIX *v = setup_ref(vector_list[i].right_hand);
+        DATA_TYPE *v = setup_ref(vector_list[i].right_hand);
 
-        memset(v, 0, sizeof(FIX) * B_N[1] / 4);
+        memset(v, 0, sizeof(DATA_TYPE) * B_N[1] / 4);
     }
 }
 
 void decouple_square_polar(int V_N, int magnitude, int angle)
 {
-    FIX *M = setup_ref(vector_list[magnitude].body);
-    FIX *A = setup_ref(vector_list[angle].body);
+    DATA_TYPE *M = setup_ref(vector_list[magnitude].body);
+    DATA_TYPE *A = setup_ref(vector_list[angle].body);
 
     for(int i = 0; i < V_N; i++) {
-        FIX new_M, new_A;
+        DATA_TYPE new_M, new_A;
 
         if(M[i] > 0) {
             if(A[i] > 0) {
@@ -51,8 +51,8 @@ void cache_righthand(int V_N, int channel, int next_window_flag)
 {
     vector_t *vector = &vector_list[channel];
 
-    FIX *rh = setup_ref(vector->right_hand);
-    FIX *v = setup_ref(vector->body);
+    DATA_TYPE *rh = setup_ref(vector->right_hand);
+    DATA_TYPE *v = setup_ref(vector->body);
 
     for(int i = 0; i < V_N / 2; i++) {
         rh[i] = v[i];
@@ -61,15 +61,15 @@ void cache_righthand(int V_N, int channel, int next_window_flag)
     vector->next_window_flag = next_window_flag;
 }
 
-void apply_window(FIX *A, FIX *B, int V_N_bits)
+void apply_window(DATA_TYPE *A, DATA_TYPE *B, int V_N_bits)
 {
     int V_N = 1 << V_N_bits;
 
-    const uint32_t *win = vwin32_2048[V_N_bits - 5];
+    const COEFF_TYPE *win = vwin32_2048[V_N_bits - 5];
 
     for(int i = 0; i < V_N / 2; i++) {
-        FIX alpha = -FIX_MUL32(A[V_N / 2 - 1 - i], win[i]) - FIX_MUL32(B[i], win[V_N - 1 - i]);
-        FIX beta = -FIX_MUL32(A[V_N / 2 - 1 - i], win[V_N - 1 - i]) + FIX_MUL32(B[i], win[i]);
+        DATA_TYPE alpha = -MUL(A[V_N / 2 - 1 - i], win[i]) - MUL(B[i], win[V_N - 1 - i]);
+        DATA_TYPE beta = -MUL(A[V_N / 2 - 1 - i], win[V_N - 1 - i]) + MUL(B[i], win[i]);
 
         A[V_N / 2 - 1 - i] = alpha;
         B[i] = beta;
@@ -80,8 +80,8 @@ void overlap_add(int V_N_bits, int channel, int previous_window_flag)
 {
     vector_t *vector = &vector_list[channel];
 
-    FIX *rh = setup_ref(vector->right_hand);
-    FIX *v = setup_ref(vector->body);
+    DATA_TYPE *rh = setup_ref(vector->right_hand);
+    DATA_TYPE *v = setup_ref(vector->body);
 
     int V_N = 1 << V_N_bits;
 
