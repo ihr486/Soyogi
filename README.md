@@ -48,9 +48,12 @@ Fixed-point version of Soyogi would be preferable if your CPU supports 32x32=64 
 * Floor 0 is not supported.
 * Submaps are not supported.
 
+## Software SRC capability
+FIR-based sampling rate converter, from 44.1kHz to 48kHz,
+is implemented to play both 11.025/22.05/44.1kHz and 12/24/48kHz audio
+with only one I2S master clock source.
+
 ## Development status
 As of August 2015, the implementation is almost complete, if not fully.
 Several Vorbis files were successfully decoded to clear PCM samples.
-Software SRC(Sampling rate converter, from 44.1kHz to 48kHz) still needs to be written,
-because the target MCU is not capable of.
 There is currently no plan to support Floor 0 and Submaps.
