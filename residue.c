@@ -143,8 +143,6 @@ void decode_residue(int V_N_bits, int index, int offset, int vectors)
                                     break;
                                 }
                             }
-                        } else {
-                            INFO("\tSkipping vector %d.\n", j);
                         }
                     }
                     partition_count++;

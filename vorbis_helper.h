@@ -61,3 +61,10 @@ inline int min(int a, int b)
 {
     return (a < b) ? a : b;
 }
+
+inline int16_t clamp16s(int x)
+{
+    if(x < -32768) return -32768;
+    if(x > 32767) return 32767;
+    return x;
+}

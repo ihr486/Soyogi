@@ -162,7 +162,18 @@ static void close_packet(void)
         }
     }
     if(remainder) {
-        WARNING("Last %d bytes skipped during packet decode.\n", remainder);
+        //WARNING("Last %d bytes skipped during packet decode.\n", remainder);
+    }
+    if(prefetch_position < prefetch_depth) {
+        //fprintf(stderr, "Last %d/%d bits skipped during packet decode.\n", prefetch_depth - prefetch_position, prefetch_depth);
+        uint32_t bits = 0, mask = 1;
+        for(; prefetch_position < prefetch_depth; prefetch_position++) {
+            if(read_bit_PF()) {
+                bits |= mask;
+            }
+            mask <<= 1;
+        }
+        //fprintf(stderr, "\tContent = 0x%08X\n", bits);
     }
 }
 

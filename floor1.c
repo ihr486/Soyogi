@@ -90,6 +90,7 @@ static int compare_coords(const void *a, const void *b)
 void decode_floor1(int index, int channel)
 {
     static const int range_list[4] = {256, 128, 86, 64};
+    static const int range_ilog[4] = {8, 7, 7, 6};
 
     floor1_header_t *floor = &floor_list[index];
     vector_t *vector = &vector_list[channel];
@@ -110,8 +111,8 @@ void decode_floor1(int index, int channel)
             coord_list[i].X = X_list[i];
         }
 
-        src_Y_list[0] = read_unsigned_value_PF(ilog(range - 1));
-        src_Y_list[1] = read_unsigned_value_PF(ilog(range - 1));
+        src_Y_list[0] = read_unsigned_value_PF(range_ilog[floor->multiplier - 1]);
+        src_Y_list[1] = read_unsigned_value_PF(range_ilog[floor->multiplier - 1]);
 
         floor1_partition_t *partition_list = setup_ref(floor->partition_list);
         floor1_class_t *class_list = setup_ref(floor->class_list);
@@ -188,6 +189,14 @@ void decode_floor1(int index, int channel)
         }
 
         qsort(coord_list, floor->values, sizeof(floor1_coord_t), compare_coords);
+
+        /*for(int i = 0; i < floor->values; i++) {
+            if(coord_list[i].step2_flag) {
+                printf("(%d %d)", coord_list[i].X, coord_list[i].Y * floor->multiplier);
+            }
+        }
+        printf("\n");*/
+
     }
 }
 
@@ -201,6 +210,13 @@ void synthesize_floor1(int V_N, int channel)
 
     int hx = 0, hy = 0, lx = 0;
     int ly = coord_list[0].Y * floor->multiplier;
+
+    /*for(int i = 0; i < floor->values; i++) {
+        if(coord_list[i].step2_flag) {
+            printf("(%d %d)", coord_list[i].X, coord_list[i].Y * floor->multiplier);
+        }
+    }
+    printf("\n");*/
 
     for(int i = 1; i < floor->values; i++) {
         if(coord_list[i].step2_flag) {

@@ -177,6 +177,11 @@ void decode_audio_packet(void)
             synthesize_floor1(V_N, i);
         }
 
+        /*for(int i = 0; i < V_N; i++) {
+            printf("%.0f ", 100000.0f * v[i]);
+        }
+        printf("\n");*/
+
         double FDCT_entry = get_us();
 
         FDCT_IV(v, V_N_bits);
@@ -185,15 +190,15 @@ void decode_audio_packet(void)
 
         for(int j = 0; j < V_N; j++) {
 #ifndef FIXED_POINT
-            v[j] *= 16000.0f;
+            v[j] *= 32768.0f;
 #endif
+            //printf("%.0f ", v[j]);
         }
+        //printf("\n");
 
         overlap_add(V_N_bits, i, previous_window_flag);
     }
 
-    DATA_TYPE *v_out = setup_ref(vector_list[0].body);
-    DATA_TYPE *rh = setup_ref(vector_list[0].right_hand);
     /*if(previous_window_flag && vector_list[0].next_window_flag) {
         for(int i = 0; i < V_N / 2; i++) {
             audio[i + V_N / 2] = (int16_t)rh[i];
@@ -223,33 +228,37 @@ void decode_audio_packet(void)
         }
     }*/
 
+    DATA_TYPE *v_left = setup_ref(vector_list[0].body);
+    DATA_TYPE *v_right = setup_ref(vector_list[1].body);
+    DATA_TYPE *rh_left = setup_ref(vector_list[0].right_hand);
+    DATA_TYPE *rh_right = setup_ref(vector_list[1].right_hand);
     if(previous_window_flag && vector_list[0].next_window_flag) {
         for(int i = 0; i < V_N / 2; i++) {
-            feed_SRC(v_out[i + V_N / 2]);
+            feed_SRC(v_left[i + V_N / 2], v_right[i + V_N / 2]);
         }
         for(int i = 0; i < V_N / 2; i++) {
-            feed_SRC(rh[i]);
+            feed_SRC(rh_left[i], rh_right[i]);
         }
     } else {
         if(!previous_window_flag) {
             for(int i = 0; i < B_N[0] / 4; i++) {
-                feed_SRC(v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 + i]);
+                feed_SRC(v_left[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 + i], v_right[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 + i]);
             }
             for(int i = 0; i < B_N[0] / 4; i++) {
-                feed_SRC(rh[i]);
+                feed_SRC(rh_left[i], rh_right[i]);
             }
             for(int i = 0; i < (B_N[1] - B_N[0]) / 4; i++) {
-                feed_SRC(-v_out[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 - 1 - i]);
+                feed_SRC(-v_left[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 - 1 - i], -v_right[B_N[1] / 4 + (B_N[1] - B_N[0]) / 4 - 1 - i]);
             }
         } else if(!vector_list[0].next_window_flag) {
             for(int i = 0; i < (B_N[1] - B_N[0]) / 4; i++) {
-                feed_SRC(-rh[B_N[1] / 4 - 1 - i]);
+                feed_SRC(-rh_left[B_N[1] / 4 - 1 - i], -rh_right[B_N[1] / 4 - 1 - i]);
             }
             for(int i = 0; i < B_N[0] / 4; i++) {
-                feed_SRC(v_out[i + B_N[0] / 4]);
+                feed_SRC(v_left[i + B_N[0] / 4], v_right[i + B_N[0] / 4]);
             }
             for(int i = 0; i < B_N[0] / 4; i++) {
-                feed_SRC(rh[i]);
+                feed_SRC(rh_left[i], rh_right[i]);
             }
         }
     }
@@ -262,7 +271,7 @@ void decode_audio_packet(void)
     setup_set_head(setup_origin);
 
     double packet_time = get_us() - initial_clock;
-    printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
+    //printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 
     /*if(previous_window_flag && this_window_flag) {
         fwrite(audio, sizeof(int16_t) * V_N, 1, sox);

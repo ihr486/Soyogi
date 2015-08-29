@@ -234,3 +234,19 @@ void FDCT_IV(DATA_TYPE *X, int N_bits)
     }
 }
 
+/*const float PI = 3.141592653589793f;
+
+void FDCT_IV(DATA_TYPE *X, int N_bits)
+{
+    int N = 1 << N_bits;
+    DATA_TYPE Y[N];
+
+    for(int i = 0; i < N; i++) {
+        Y[i] = 0;
+        for(int j = 0; j < N; j++) {
+            Y[i] += X[j] * cos(PI / N * (i + 0.5f) * (j + 0.5f));
+        }
+    }
+
+    memcpy(X, Y, sizeof(DATA_TYPE) * N);
+}*/
