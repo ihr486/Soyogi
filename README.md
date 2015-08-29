@@ -10,7 +10,7 @@ Its salient features include:
 * Totally static memory use, in a sense that neither heap area nor dynamic stack is required
 * Variable-length CAR (Compressed Array Representation) for Huffman tree, which saves around 25% of codebook RAM
 * Most of the stereo Ogg/Vorbis files with blocksizes 256 and 2048 could be decoded with only 24KiB of codec RAM on average
-* Fixed point implementation for environments without FPU is also available as a separate branch
+* Fixed point implementation for environments without FPU is also available as a build option
 
 ## Inverse MDCT via DCT-IV
 Instead of extracting 2N time-domain samples from the vector,
@@ -48,9 +48,12 @@ Fixed-point version of Soyogi would be preferable if your CPU supports 32x32=64 
 * Floor 0 is not supported.
 * Submaps are not supported.
 
+## Software SRC capability
+FIR-based sampling rate converter, from 44.1kHz to 48kHz,
+is implemented to play both 11.025/22.05/44.1kHz and 12/24/48kHz audio
+with only one I2S master clock source.
+
 ## Development status
 As of August 2015, the implementation is almost complete, if not fully.
 Several Vorbis files were successfully decoded to clear PCM samples.
-Software SRC(Sampling rate converter, from 44.1kHz to 48kHz) still needs to be written,
-because the target MCU is not capable of.
 There is currently no plan to support Floor 0 and Submaps.
