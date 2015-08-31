@@ -5,8 +5,6 @@ uint32_t audio_sample_rate = 0;
 uint32_t bitrate_nominal = 0;
 uint16_t B_N_bits[2] = {0, 0}, B_N[2] = {0, 0};
 
-//int16_t *audio = NULL;
-
 static void decode_identification_header(void)
 {
     uint32_t vorbis_version = read_unsigned_value(32);
@@ -29,8 +27,6 @@ static void decode_identification_header(void)
     if(B_N[1] > 4096) {
         ERROR(ERROR_VORBIS, "Unsupported greater blocksizes: %u/%u.\n", B_N[0], B_N[1]);
     }
-
-    //audio = (int16_t *)malloc(sizeof(int16_t) * B_N[1] / 2);
 
     if(!read_unsigned_value(1))
         ERROR(ERROR_SETUP, "Framing error at the end of setup packet.\n");
@@ -271,7 +267,7 @@ void decode_audio_packet(void)
     setup_set_head(setup_origin);
 
     double packet_time = get_us() - initial_clock;
-    //printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
+    printf("%lf %lf %lf\n", packet_time, FDCT_time, residue_time);
 
     /*if(previous_window_flag && this_window_flag) {
         fwrite(audio, sizeof(int16_t) * V_N, 1, sox);
