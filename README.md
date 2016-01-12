@@ -3,12 +3,12 @@ Floating-point/Fixed-point Ogg/Vorbis decoder for embedded platforms
 
 ## Overview
 Soyogi(そよぎ, "tremor" in Japanese) is a new implementation of Ogg/Vorbis decoder,
-Focused on looser memory requirement rather than speed.
+focused on looser memory requirement rather than speed.
 Soyogi is around two times slower than other decoders such as Tremor,
 while it can empirically decode most of the common Vorbis files with just 48KiB of RAM.
 
 Its salient features include:
-* 50% space savings by calculating MDCT via "in-place" DCT-IV
+* 50% space saving by calculating MDCT via "in-place" DCT-IV
 * Totally static memory use, in a sense that neither heap area nor dynamic stack is required
 * Variable-length CAR (Compressed Array Representation) for Huffman tree, which saves around 25% of codebook RAM
 * Most of the stereo Ogg/Vorbis files with blocksizes 256 and 2048 could be decoded with only 24KiB of codec RAM on average
