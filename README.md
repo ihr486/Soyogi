@@ -56,6 +56,8 @@ is implemented to play both 11.025/22.05/44.1kHz and 12/24/48kHz audio
 with only one I2S master clock source.
 
 ## Development status
-As of August 2015, the implementation is almost complete, if not fully.
+As of December 2015, the decoder is apparently functional
+ (decoder functionality is frozen), 
+whereas there should be potential bugs when an irregular stream is given.
 Several Vorbis files were successfully decoded to clear PCM samples.
 There is currently no plan to support Floor 0 and Submaps.
