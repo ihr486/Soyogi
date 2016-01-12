@@ -56,7 +56,7 @@ int main(int argc, const char *argv[])
     INFO("Playing %s.\n", argv[1]);
 
     //sox = popen("sox -t raw -r 48000 -e s -b 16 -c 2 - -t wav -r 48000 -e s -b 16 -c 2 output.wav 2>/dev/null", "wb");
-    sox = popen("play -t raw -r 48000 -e s -b 16 -c 2 - 2>/dev/null", "w");
+    sox = popen("play -t raw -r 44100 -e s -b 16 -c 2 - 2>/dev/null", "w");
     if(!sox) {
         fprintf(stderr, "Failed to connect to sox.\n");
         return 1;
