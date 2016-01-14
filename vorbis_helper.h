@@ -10,9 +10,27 @@ inline int ilog(int32_t x)
     return i;
 }
 
+inline int integer_power(int x, int n)
+{
+    int ret = 1;
+    while(n > 0) {
+        if(n & 1) {
+            ret *= x;
+            n ^= 1;
+        } else {
+            ret *= ret;
+            n >>= 1;
+        }
+    }
+    return ret;
+}
+
 inline int lookup1_values(int dimension, int entry)
 {
-    return (int)powf((float)entry, 1.0f / dimension);
+    //return (int)powf((float)entry, 1.0f / dimension);
+    int ret;
+    for(ret = 1; integer_power(ret, dimension) <= entry; ret++);
+    return ret - 1;
 }
 
 inline int low_neighbor(uint16_t *v, int x)
