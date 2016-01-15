@@ -16,11 +16,9 @@ inline int integer_power(int x, int n)
     while(n > 0) {
         if(n & 1) {
             ret *= x;
-            n ^= 1;
-        } else {
-            ret *= ret;
-            n >>= 1;
         }
+        x *= x;
+        n >>= 1;
     }
     return ret;
 }
