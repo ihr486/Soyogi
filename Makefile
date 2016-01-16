@@ -5,12 +5,12 @@ COBJS := $(CSRCS:%.c=%.o)
 
 OBJS := $(COBJS)
 
-BIN := decoder
+BIN := soyogi
 
 CC := gcc
 CFLAGS := -Wall -Wextra -std=c99 -O3
 
-.PHONY: all check clean
+.PHONY: all check clean install
 
 all: $(BIN)
 
@@ -19,6 +19,9 @@ check:
 
 clean:
 	-@rm -vf $(OBJS) $(BIN)
+
+install: $(BIN)
+	install --mode=755 --target-directory=/usr/local/bin $<
 
 $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
